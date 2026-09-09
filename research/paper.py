@@ -5,7 +5,6 @@ import csv
 import hashlib
 import json
 import platform
-import subprocess
 import sys
 import time
 from pathlib import Path
@@ -38,15 +37,6 @@ def measure(case, table, method, paths_dir=None):
         result = run(n, m, d, path=path)
     elif method == "single_pass":
         result = construct(n, m, d, path)
-    elif method == "geometric":
-        process = subprocess.run(
-            [sys.executable, str(ROOT / "research/replay.py"), str(n), str(m), str(d)]
-            + ([str(path)] if path else []),
-            capture_output=True,
-            text=True,
-            check=True,
-        )
-        result = json.loads(process.stdout)
     else:
         result = optimal(n, m, d, path=path)
     wall = time.perf_counter() - started
@@ -79,9 +69,8 @@ def main():
     parser.add_argument(
         "--methods",
         nargs="+",
-        choices=("paper", "single_pass", "geometric", "mcf"),
+        choices=("paper", "single_pass", "mcf"),
         default=["paper", "single_pass"],
-        help="geometric selects the legacy replay portfolio",
     )
     parser.add_argument("--case", nargs=2, type=int, metavar=("N", "M"))
     parser.add_argument("--output", type=Path)
@@ -110,13 +99,6 @@ def main():
         files += ["build/urber"]
     if "single_pass" in methods:
         files += ["route.py", "build/construct", "build/pure_fan"]
-    if "geometric" in methods:
-        files += [
-            "research/replay.py",
-            "profiles.json",
-            "build/pure_router",
-            "build/pure_fan",
-        ]
     signature = hashlib.sha256(
         json.dumps(
             {

@@ -19,20 +19,13 @@ import numpy as np
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
-        "--results", type=Path, default=ROOT / "benchmarks/paper/reproduced_ii.jsonl"
-    )
-    parser.add_argument(
-        "--method", choices=("geometric", "single_pass"), default="geometric"
+        "--results", type=Path, default=ROOT / "benchmarks/paper/revised_ii.jsonl"
     )
     parser.add_argument(
         "--output-stem", type=Path, default=ROOT / "assets/paper-comparison"
     )
     args = parser.parse_args()
-    method_label = (
-        "Revised deterministic rules"
-        if args.method == "single_pass"
-        else "Improved geometric replay"
-    )
+    method_label = "Revised deterministic rules"
     cases = published_cases("ii")
     measured = {
         (r["N"], r["M"], r["method"]): r
@@ -43,7 +36,6 @@ def main():
     colors = dict(
         published="#718096",
         paper="#2563a6",
-        geometric="#14856d",
         single_pass="#14856d",
         mcf="#b3693d",
     )
@@ -58,14 +50,14 @@ def main():
         measured[r["N"], r["M"], "paper"]["total_length"] - r["mcf_length"]
         for r in cases
     ]
-    geometric = [
-        measured[r["N"], r["M"], args.method]["total_length"] - r["mcf_length"]
+    revised = [
+        measured[r["N"], r["M"], "single_pass"]["total_length"] - r["mcf_length"]
         for r in cases
     ]
     for offset, values, color, label in [
         (-0.24, published, colors["published"], "Published URBER"),
         (0, paper, colors["paper"], "Paper-method reconstruction"),
-        (0.24, geometric, colors["geometric"], method_label),
+        (0.24, revised, colors["single_pass"], method_label),
     ]:
         quality.bar(x + offset, values, width=0.22, color=color, label=label)
         quality.scatter(x + offset, values, color=color, s=18, zorder=3)
@@ -85,7 +77,7 @@ def main():
         xticks=x,
         xticklabels=labels,
     )
-    quality.set_ylim(-0.35, max(published + paper + geometric + [1]) * 1.35)
+    quality.set_ylim(-0.35, max(published + paper + revised + [1]) * 1.35)
     quality.legend(loc="upper left", ncol=3, frameon=False)
     original = fig.add_subplot(grid[1, 0])
     local = fig.add_subplot(grid[1, 1])
@@ -99,7 +91,7 @@ def main():
         )
     for key, label in [
         ("paper", "Paper-method reconstruction"),
-        (args.method, method_label),
+        ("single_pass", method_label),
     ]:
         local.semilogy(
             x,

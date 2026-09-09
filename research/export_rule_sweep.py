@@ -28,7 +28,7 @@ def classification(length, bound, witness):
 
 
 def collect(inputs, max_n):
-    with (ROOT / "benchmarks/full400/results.csv").open() as stream:
+    with (ROOT / "benchmarks/rules400/results.csv").open() as stream:
         reference = {(int(r["N"]), int(r["M"])): r for r in csv.DictReader(stream)}
     rows, sources = {}, []
     common = None
@@ -46,8 +46,8 @@ def collect(inputs, max_n):
         }
         if common is None:
             common = scripts
-        if scripts != common or scripts["benchmarks/full400/results.csv"] != digest(
-            (ROOT / "benchmarks/full400/results.csv").read_bytes()
+        if scripts != common or scripts["benchmarks/rules400/results.csv"] != digest(
+            (ROOT / "benchmarks/rules400/results.csv").read_bytes()
         ):
             raise ValueError("Mixed source scripts or reference dataset")
         raw = (folder / "results.jsonl").read_bytes()
@@ -66,10 +66,10 @@ def collect(inputs, max_n):
                 d,
                 r["lower_bound"],
                 r["paper_length"],
-                r["legacy_replay_length"],
+                r["reference_length"],
             ) != tuple(
                 int(ref[k])
-                for k in ("d", "lower_bound", "paper_length", "geometric_length")
+                for k in ("d", "lower_bound", "paper_length", "total_length")
             ):
                 raise ValueError("Case differs from the fixed-pitch reference")
             native = r["constructor"]
@@ -84,7 +84,7 @@ def collect(inputs, max_n):
             expected = classification(
                 r["total_length"],
                 r["lower_bound"],
-                min(r["paper_length"], r["legacy_replay_length"]),
+                min(r["paper_length"], r["reference_length"]),
             )
             if expected != r["status"]:
                 raise ValueError("Incorrect optimality classification")
@@ -120,7 +120,7 @@ def summarize(rows):
         statuses = Counter()
         for r in rows:
             witness = min(
-                r["legacy_replay_length"],
+                r["reference_length"],
                 r["total_length"] if method == "paper" else r["paper_length"],
             )
             statuses[classification(r[field], r["lower_bound"], witness)] += 1
@@ -146,17 +146,17 @@ def main():
     parser.add_argument("inputs", nargs="+", type=Path)
     parser.add_argument("--max-n", type=int, default=400)
     parser.add_argument("--output", type=Path, required=True)
-    parser.add_argument("--candidate", type=Path, required=True)
     args = parser.parse_args()
     if not 1 <= args.max_n <= 400:
         parser.error("require 1 <= max-n <= 400")
     rows, sources, repeated = collect(args.inputs, args.max_n)
-    candidate = json.loads(args.candidate.read_text())
-    hashes = candidate.get("hashes", candidate)
-    for source in sources:
-        for name, value in source["files"].items():
-            if not name.startswith("build/") and hashes.get(name) != value:
-                raise ValueError("Candidate source manifest does not match the run")
+    candidate = {
+        "hashes": {
+            name: value
+            for name, value in sources[0]["files"].items()
+            if not name.startswith("build/")
+        }
+    }
     args.output.mkdir(parents=True, exist_ok=True)
     (args.output / "candidate.json").write_text(json.dumps(candidate, indent=2) + "\n")
     raw = "".join(json.dumps(r, sort_keys=True) + "\n" for r in rows).encode()
@@ -168,7 +168,7 @@ def main():
         "lower_bound",
         "paper_length",
         "total_length",
-        "legacy_replay_length",
+        "reference_length",
         "status",
     ]
     with (args.output / "results.csv").open("w", newline="") as stream:

@@ -19,14 +19,14 @@ def evaluate(row):
     length = result["total_length"]
     if length < bound:
         raise ValueError(f"Length below the independent bound: {(n, m, d)}")
-    witness = min(int(row["paper_length"]), int(row["geometric_length"]))
+    witness = min(int(row["paper_length"]), int(row["total_length"]))
     return {
         "N": n,
         "M": m,
         "d": d,
         "lower_bound": bound,
         "paper_length": int(row["paper_length"]),
-        "legacy_replay_length": int(row["geometric_length"]),
+        "reference_length": int(row["total_length"]),
         "total_length": length,
         "status": "optimal"
         if length == bound
@@ -50,7 +50,7 @@ def main():
         parser.error("require 1 <= max-n <= 400 and positive workers")
     if args.shards < 1 or not 0 <= args.shard < args.shards:
         parser.error("require 0 <= shard < shards")
-    data = ROOT / "benchmarks/full400/results.csv"
+    data = ROOT / "benchmarks/rules400/results.csv"
     with data.open() as stream:
         rows = [
             row
@@ -71,7 +71,12 @@ def main():
         "research/rule_sweep.py",
         "build/construct",
         "build/pure_fan",
-        "benchmarks/full400/results.csv",
+        "benchmarks/rules400/results.csv",
+        "src/router.hpp",
+        "src/construct.cpp",
+        "src/pure/pure_fan.cpp",
+        "src/routing_types.hpp",
+        "src/verify.hpp",
     ]
     metadata = {
         "files": {

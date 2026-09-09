@@ -34,14 +34,10 @@ TABLE_III = [
 ]
 
 
-def run(n, m, d, path=None, *, improved=False, polish=False):
+def run(n, m, d, path=None):
     command = [str(ROOT / "build/urber"), str(n), str(m), str(d)]
     if path:
         command.append(str(path))
-    if polish:
-        command.append("--polish")
-    elif improved:
-        command.append("--improved")
     process = subprocess.run(command, capture_output=True, text=True)
     if not process.stdout.strip():
         raise RuntimeError(f"{n}x{m}, d={d}: {process.stderr}")

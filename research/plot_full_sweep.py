@@ -6,8 +6,8 @@ import json
 import os
 from pathlib import Path
 
-from research.benchmark import ROOT
-from research.full_sweep import classify
+from route import ROOT
+from research.export_rule_sweep import classification
 
 os.environ.setdefault("MPLCONFIGDIR", str(ROOT / "results/matplotlib"))
 import matplotlib
@@ -25,7 +25,6 @@ def main():
     parser.add_argument("--max-n", type=int, default=400)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--allow-incomplete", action="store_true")
-    parser.add_argument("--method-kind", choices=("replay", "rules"), default="replay")
     args = parser.parse_args()
     rows = {}
     for path in args.inputs:
@@ -36,18 +35,8 @@ def main():
         )
         for line in text.splitlines():
             row = json.loads(line)
-            if args.method_kind == "rules":
-                if not row["constructor"].get("verified"):
-                    raise ValueError("Unverified deterministic construction")
-                row = dict(
-                    row,
-                    paper={"verified": True, "total_length": row["paper_length"]},
-                    geometric=row["constructor"],
-                    legacy={
-                        "verified": True,
-                        "total_length": row["legacy_replay_length"],
-                    },
-                )
+            if not row["constructor"].get("verified"):
+                raise ValueError("Unverified deterministic construction")
             key = row["N"], row["M"]
             if key in rows or not all(1 <= x <= args.max_n for x in key):
                 raise ValueError(f"Duplicate or out-of-domain case: {key}")
@@ -66,22 +55,18 @@ def main():
     fig, axes = plt.subplots(1, 2, figsize=(13, 7), facecolor="#fafbf9")
     for ax, method, other, title in zip(
         axes,
-        ["paper", "geometric"],
-        ["geometric", "paper"],
+        ["paper_length", "total_length"],
+        ["total_length", "paper_length"],
         [
             "Paper-method reconstruction",
-            "Revised deterministic rules"
-            if args.method_kind == "rules"
-            else "Improved geometric replay",
+            "Revised deterministic rules",
         ],
     ):
         grid = np.zeros((args.max_n, args.max_n), dtype=np.uint8)
         count = 0
         for (n, m), row in rows.items():
-            witness = row[other]
-            if args.method_kind == "rules":
-                witness = min((witness, row["legacy"]), key=lambda v: v["total_length"])
-            status = classify(row[method], row["lower_bound"], witness)
+            witness = min(row[other], row.get("reference_length", row[other]))
+            status = classification(row[method], row["lower_bound"], witness)
             grid[n - 1, m - 1] = statuses[status]
             count += status == "optimal"
         ax.imshow(

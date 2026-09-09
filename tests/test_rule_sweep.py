@@ -44,6 +44,14 @@ class RuleSweepTests(unittest.TestCase):
             )
             self.assertEqual(repeated, 0)
             self.assertEqual(len(sources), 2)
+            published = Path(folder) / "published"
+            subprocess.run(
+                [sys.executable, "-m", "research.export_rule_sweep",
+                 *map(str, inputs), "--max-n", "4", "--output", str(published)],
+                cwd=ROOT, check=True, capture_output=True,
+            )
+            summary = json.loads((published / "summary.json").read_text())
+            self.assertEqual(summary["full_square"]["revised"]["statuses"], {"optimal": 16})
             with self.assertRaisesRegex(ValueError, "Incomplete coverage"):
                 collect(inputs[:1], 4)
             path = inputs[0] / "results.jsonl"

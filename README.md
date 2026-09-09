@@ -2,7 +2,7 @@
 
 Code for **URBER: Ultrafast Rule-Based Escape Routing Method for Large-Scale Sample Delivery Biochips**, by Jiayi Weng, Tsung-Yi Ho, Weiqing Ji, Peng Liu, Mengdi Bao, and Hailong Yao. [Paper](https://trinkle23897.github.io/pdf/URBER.pdf) · [DOI](https://doi.org/10.1109/TCAD.2018.2883908)
 
-This repository provides an independent reconstruction of the paper's method, a minimum-cost-flow reference solver, and a deterministic single-construction router. The earlier geometric replay portfolio is retained only for reproducing archived experiments. It is not a recovered copy of the original authors' implementation.
+This repository provides an independent reconstruction of the paper's method, a minimum-cost-flow reference solver, and a deterministic single-construction router. It is not a recovered copy of the original authors' implementation.
 
 ## Results reported in the paper
 
@@ -53,7 +53,7 @@ The timing panels separate **published CPU times** from **devbox wall times**, w
 | 904 x 442 | 171 | 8,477,760,224 | 8,477,760,224 | 76.60 | 2572 |
 | 949 x 527 | 196 | 14,012,963,087 | 14,012,963,087 | 189.95 | 3868 |
 
-All ten reconstructed lengths match the published Table III values. These reconstruction measurements are archived runs of the original-rule reconstruction. The revised rules, legacy portfolio, and MCF are not claimed to have been rerun on these large cases. [Reconstruction data](benchmarks/paper/reproduced_iii.jsonl)
+All ten reconstructed lengths match the published Table III values. These reconstruction measurements are archived runs of the original-rule reconstruction. The revised rules and MCF are not claimed to have been rerun on these large cases. [Reconstruction data](benchmarks/paper/reproduced_iii.jsonl)
 
 </details>
 
@@ -110,48 +110,9 @@ Every revised routing matches the independent boundary-assignment lower bound, o
 
 [Per-case CSV](benchmarks/rules400/results.csv) · [Full observations](benchmarks/rules400/results.jsonl.gz) · [Summary](benchmarks/rules400/summary.json) · [Source and input hashes](benchmarks/rules400/provenance.json) · [Methodology](docs/benchmark.md)
 
-<details>
-<summary>Archived replay experiment: complete 1–400 optimality map</summary>
-
-This map measures the **legacy replay portfolio**, available through `python -m research.replay`. Its 99.75625% rate does **not** describe the current single-construction default. The raw observations and provenance are preserved unchanged, including the classifications known at the time of that run.
-
-Every **ordered pair `1 <= N,M <= 400`** has now been constructed and evaluated: **160,000 / 160,000 cases**, including both orientations. Both methods use the same fixed pitch for each case.
-
-| Method | Proven optimal | Rate | Proven nonoptimal | Unknown |
-|---|---:|---:|---:|---:|
-| Paper-method reconstruction | 131,592 | 82.245% | 28,063 | 345 |
-| Legacy replay portfolio | 159,610 | **99.75625%** | 0 | 390 |
-
-![Complete is_optimal(N,M) map for all ordered pairs from 1 to 400](assets/optimality-full400.png)
-
-Green means a verified routing attains an independent lower bound. Red means a shorter verified routing exists. Yellow means **optimality is unknown**, not that routing failed. Every construction in this run passed the geometry verifier. The improved method is shorter in **28,063** cases and equal in the other **131,937**; it is never longer in this dataset. Its largest remaining lower-bound gap is **68**, at `13 x 24` and `24 x 13`, `d=6`. These gaps do not prove nonoptimality.
-
-For comparison with the paper's Figure 17, the completed run also contains every pair in `30 <= N,M <= 100`:
-
-| Method / experiment | Proven optimal in the 5,041-case dimension range |
-|---|---:|
-| Original paper, reported result | Approximately 91.9% |
-| Paper-method reconstruction, this run | 4,621 / 5,041 = 91.67% |
-| Legacy replay portfolio, this run | 4,997 / 5,041 = **99.13%** |
-
-The last two rows use identical recorded pitches. They share the paper's dimension range, but do **not** reproduce its complete pitch selection: this run retains existing benchmark pitches and otherwise uses the reconstructed paper method's bisection result. The paper's published result and the reconstruction are therefore reported separately. The improved method has 44 unknown cases in this range, each with a lower-bound gap of at most 4.
-
-[Per-case CSV](benchmarks/full400/results.csv) · [Compressed full observations](benchmarks/full400/results.jsonl.gz) · [Summary](benchmarks/full400/summary.json) · [Provenance and hashes](benchmarks/full400/provenance.json) · [Methodology](docs/benchmark.md)
-
-The earlier thin-rectangle test (`1 <= N <= 400`, `1 <= M <= floor(N/5)`) remains available below. Its **15,880 / 15,880** improved-method optima are reproduced inside the full-square run; its 100% rate applies only to that subset.
-
-<details>
-<summary>Earlier thin-rectangle map</summary>
-
-![Thin-rectangle optimality map](assets/optimality.png)
-
-</details>
-
-</details>
-
 ## Build
 
-Requires GCC or Clang with C++17 support, Make, and Python 3.11 or later. The paper and geometric routers need no external solver. Install the research dependencies for MCF, tests, and figures:
+Requires GCC or Clang with C++17 support, Make, and Python 3.11 or later. The paper and revised routers need no external solver. Install the research dependencies for MCF, tests, and figures:
 
 ```sh
 make -j4
@@ -174,9 +135,6 @@ The following commands all solve the paper's `30 x 30, d=9` example and export t
 
 # 3. Revised deterministic rules: one construction at the supplied pitch.
 .venv/bin/python route.py 30 30 9 results/routes/single-pass-30x30-d9.json
-
-# Historical replay method used in the archived figures and 400x400 sweep.
-.venv/bin/python -m research.replay 30 30 9 results/routes/geometric-30x30-d9.json
 ```
 
 Reproduce the published benchmark tables:
@@ -184,9 +142,6 @@ Reproduce the published benchmark tables:
 ```sh
 # Paper method and current default: every case in Table II.
 .venv/bin/python -m research.paper --table ii --methods paper single_pass
-
-# Reproduce the archived replay comparison.
-.venv/bin/python -m research.paper --table ii --methods paper geometric
 
 # Exact MCF: every case in Table II. This can be expensive.
 .venv/bin/python -m research.paper --table ii --methods mcf
@@ -197,10 +152,6 @@ Reproduce the published benchmark tables:
 # Revised rules: every ordered pair at the recorded 1..400 pitches.
 .venv/bin/python -m research.rule_sweep --max-n 400 --workers 64 \
   --output results/rules-400
-
-# Reproduce the legacy replay sweep over every ordered pair in 1..400.
-.venv/bin/python -m research.full_sweep --max-n 400 --workers 32 \
-  --output results/full-400
 ```
 
 Table runners accept `--case N M`, `--paths-dir DIR`, `--output FILE`, and `--resume`. The full sweep saves per-case results, progress, and a completion marker; it can be resumed with the same command plus `--resume`. [Detailed reproduction and figure commands](docs/reproduction.md)
@@ -212,14 +163,14 @@ make plot PYTHON=.venv/bin/python
 
 ## Method and guarantees
 
-The default selects one branch using only `(N,M,d)` and runs it once. Its path geometry is deterministic; timing fields naturally vary. A failed construction returns an error without rerouting or increasing pitch. The legacy flags `--improved` and `--polish` are never passed to the paper executable.
+The default selects one branch using only `(N,M,d)` and runs it once. Its path geometry is deterministic; timing fields naturally vary. A failed construction returns an error without rerouting or increasing pitch.
 
 The complete executable uses `O(G)` time and space, where `G=((N+1)d+1)((M+1)d+1)`. At the paper's pitch scale `d=Theta(NM/(N+M))`, this gives the original `O(N^3 M^3/(N+M)^2)` complexity. The proof accounts for candidate searches, dynamic terminal counts, path construction, and verification. It is not a strict `O(NM)` claim for arbitrary pitch.
 
 Only the high-pitch branch has a general optimality proof. The revised rules reach 100% on the measured domains; this finite validation is not a theorem for arbitrary dimensions or pitches. `optimality_certified: false` means no online certificate, not a proof of nonoptimality. Every benchmark optimum is certified offline by equality with an independent lower bound.
 
-- [Routing model, current dispatch, and legacy replay](docs/algorithm.md)
+- [Routing model and deterministic rules](docs/algorithm.md)
 - [Legality, complexity, and optimality evidence](docs/guarantees.md)
 - [High-pitch fan proof](docs/fan-proof.md)
 
-`src/` contains the C++ implementations and independent geometry verifier; `research/` contains offline solvers, benchmark runners, and plotting tools; `benchmarks/` contains published and measured data. The historical `build/urber --polish` residual-search extension remains available for research, but is not called by the default router or the legacy geometric portfolio. Generated binaries and new runs go into ignored `build/` and `results/` directories.
+`src/` contains the C++ implementations and independent geometry verifier; `research/` contains offline solvers, benchmark runners, and plotting tools; `benchmarks/` contains published and measured data. Generated binaries and new runs go into ignored `build/` and `results/` directories.
