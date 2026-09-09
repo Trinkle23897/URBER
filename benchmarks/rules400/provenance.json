@@ -1,0 +1,89 @@
+{
+  "candidate": {
+    "candidate": "deterministic-central-and-projection-rules-v6",
+    "base_commit": "989d2c766d7bae6228e0301d83e7e0c303c63e25",
+    "hashes": {
+      "Makefile": "0c7ad08d41535aef12385b8f102a8248bbe675ac07073218adeecb8dcd9c9fe1",
+      "route.py": "8a36acc66aa223765f641e531ab0099b9cf3f226201095b2e70cd52b3db22a22",
+      "research/rule_sweep.py": "671e4ee16f8bb2f8df7bf1d39170af28063f9bf40e2dcf1da25aa6eed0888423",
+      "research/__init__.py": "daaccd25f781eb0271d86f710e7c33bceb62c55149e058fefab2cf5d3bf53723",
+      "src/residual_repair.hpp": "eed65e28d688e9c91a3961fcd85e84358d38d983b24ff299ca820c455807d2a0",
+      "src/routing_types.hpp": "f05afad0c8d148ea46346f1b11c630bdd109a72f487e6dd6eb90f8145ef83ca5",
+      "src/urber.cpp": "64c738dced521edab78c761eb07a8ff00b0f3db006e0a8eea6f27695c8d0e0dd",
+      "src/construct.cpp": "ab87d9d3cc8d4428f8d67d3e4e4284a7fdd36e4f4aaf1fb5ae839a2e4625e201",
+      "src/router.hpp": "c61eebcf012a4cbe86867b6935d5814bafa940683b7eda62fdfcfa94bd932dcc",
+      "src/verify.hpp": "a3a21fcaf4f29ec31f3a2fcea844d02eebb9aee3300ea3d3d7bac323009d1477",
+      "benchmarks/full400/results.csv": "89e8343c3ca8c0ffa3899216eeff23c3c250de51327ed23303d89d1a480bf1ff",
+      "src/pure/pure_router.cpp": "bdcf0cde61ac71073403679feef4937ebfd0303b3931473ca0b21c435e944057",
+      "src/pure/pure_fan.cpp": "5e290f052220eba2ba80adf612f01d7680ec4e65d4810423933a6c82446b51e1"
+    }
+  },
+  "max_n": 400,
+  "consistent_repeated_rows": 0,
+  "inputs": [
+    {
+      "rows": 40000,
+      "results_sha256": "bbaabc4e997a408a2ca29bbca69840748454476513ba2afef401637c99514773",
+      "signature": "de498cec8052728327f7965e082bcd1ac031039d3c75f8f95b12f0060aceffd9",
+      "files": {
+        "route.py": "8a36acc66aa223765f641e531ab0099b9cf3f226201095b2e70cd52b3db22a22",
+        "research/rule_sweep.py": "671e4ee16f8bb2f8df7bf1d39170af28063f9bf40e2dcf1da25aa6eed0888423",
+        "build/construct": "f4992d82fdf48706cc7b15c254b39944188fc06651166eee816565ecdea34073",
+        "build/pure_fan": "33310713d17ab0aeaa99e0b535712a297f9045d7b6dbce42fa823714ae8fe654",
+        "benchmarks/full400/results.csv": "89e8343c3ca8c0ffa3899216eeff23c3c250de51327ed23303d89d1a480bf1ff"
+      },
+      "max_n": 400,
+      "shards": 4,
+      "shard": 0
+    },
+    {
+      "rows": 40000,
+      "results_sha256": "4242f1b8dcea73dda687afcab11f465e0b5e2ee43b787121e39169aace13b57c",
+      "signature": "14ea26ccf7133accfade736a444b88f758190aa572e1b662d57d0b9e642fd76f",
+      "files": {
+        "route.py": "8a36acc66aa223765f641e531ab0099b9cf3f226201095b2e70cd52b3db22a22",
+        "research/rule_sweep.py": "671e4ee16f8bb2f8df7bf1d39170af28063f9bf40e2dcf1da25aa6eed0888423",
+        "build/construct": "f4992d82fdf48706cc7b15c254b39944188fc06651166eee816565ecdea34073",
+        "build/pure_fan": "33310713d17ab0aeaa99e0b535712a297f9045d7b6dbce42fa823714ae8fe654",
+        "benchmarks/full400/results.csv": "89e8343c3ca8c0ffa3899216eeff23c3c250de51327ed23303d89d1a480bf1ff"
+      },
+      "max_n": 400,
+      "shards": 4,
+      "shard": 1
+    },
+    {
+      "rows": 40000,
+      "results_sha256": "b2f477c21f04fbe6bf62fe67d7b9aa02590cba6e6369c62514bb1fe525381b5d",
+      "signature": "aefbaa9f613003e21cf60e9a0579b2df7c91c1693fe1e8bfb2e2749b0e6756e9",
+      "files": {
+        "route.py": "8a36acc66aa223765f641e531ab0099b9cf3f226201095b2e70cd52b3db22a22",
+        "research/rule_sweep.py": "671e4ee16f8bb2f8df7bf1d39170af28063f9bf40e2dcf1da25aa6eed0888423",
+        "build/construct": "f4992d82fdf48706cc7b15c254b39944188fc06651166eee816565ecdea34073",
+        "build/pure_fan": "33310713d17ab0aeaa99e0b535712a297f9045d7b6dbce42fa823714ae8fe654",
+        "benchmarks/full400/results.csv": "89e8343c3ca8c0ffa3899216eeff23c3c250de51327ed23303d89d1a480bf1ff"
+      },
+      "max_n": 400,
+      "shards": 4,
+      "shard": 2
+    },
+    {
+      "rows": 40000,
+      "results_sha256": "33f95dff46e0a90eb63d92ce534e9badab4518794aac267cb45ebbaefa293922",
+      "signature": "38d63fece79b0ff84a496c8ed47338b16e91aa3aed13c9758242ed734db4e855",
+      "files": {
+        "route.py": "8a36acc66aa223765f641e531ab0099b9cf3f226201095b2e70cd52b3db22a22",
+        "research/rule_sweep.py": "671e4ee16f8bb2f8df7bf1d39170af28063f9bf40e2dcf1da25aa6eed0888423",
+        "build/construct": "f4992d82fdf48706cc7b15c254b39944188fc06651166eee816565ecdea34073",
+        "build/pure_fan": "33310713d17ab0aeaa99e0b535712a297f9045d7b6dbce42fa823714ae8fe654",
+        "benchmarks/full400/results.csv": "89e8343c3ca8c0ffa3899216eeff23c3c250de51327ed23303d89d1a480bf1ff"
+      },
+      "max_n": 400,
+      "shards": 4,
+      "shard": 3
+    }
+  ],
+  "artifacts": {
+    "results.csv": "6192f7dffaab1be6383f2eed85f3f7a0a3e824ebce219bcb46a3b77a67681f7c",
+    "results.jsonl.gz": "e1964eaa877adb40b8968569aba36995e59629cbcad46ab6952dbd40e7b4f019"
+  }
+}

@@ -33,6 +33,8 @@ plot:
 	$(PYTHON) -m research.plot_benchmark
 	$(PYTHON) -m research.plot_full_sweep benchmarks/rules100/results.jsonl.gz --max-n 100 --method-kind rules --output assets/optimality-rules100.png
 	$(PYTHON) -m research.plot_full_sweep benchmarks/rules100/results.jsonl.gz --max-n 100 --method-kind rules --output assets/optimality-rules100.svg
+	$(PYTHON) -m research.plot_full_sweep benchmarks/rules400/results.jsonl.gz --max-n 400 --method-kind rules --output assets/optimality-rules400.png
+	$(PYTHON) -m research.plot_full_sweep benchmarks/rules400/results.jsonl.gz --max-n 400 --method-kind rules --output assets/optimality-rules400.svg
 	$(PYTHON) -m research.plot_full_sweep benchmarks/full400/results.jsonl.gz --output assets/optimality-full400.png
 	$(PYTHON) -m research.plot_full_sweep benchmarks/full400/results.jsonl.gz --output assets/optimality-full400.svg
 	$(PYTHON) -m research.plot_routes benchmarks/paper/routes/mcf-30x30-d9.json benchmarks/paper/routes/paper-30x30-d9.json benchmarks/paper/routes/single_pass-30x30-d9.json --labels "Minimum-cost flow" "Paper method" "Revised deterministic rules" --output assets/routing-square.png

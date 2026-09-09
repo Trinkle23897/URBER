@@ -289,8 +289,8 @@ public:
   int central_limit() const {
     if (!revised || 3LL * N < 4LL * M)
       return N / 2;
-    if (M == 2 * d + 1)
-      return (N + 1 + (N % 4 == 3)) / 3;
+    if (M - 2 * d < 10)
+      return 1;
     return N / 2 - (N % 2 == 0);
   }
   bool central() {
@@ -366,8 +366,37 @@ public:
         return t - 1;
     return bound;
   }
+  long long line_cost(const std::vector<int> &counts, int ports) const {
+    int k = 0;
+    for (int c : counts)
+      k += c;
+    if (k > ports)
+      return std::numeric_limits<long long>::max() / 4;
+    if (!k)
+      return 0;
+    int hi = ports - k, max_a = std::min(hi, int(counts.size()) * d);
+    std::vector<int> heap(max_a + 1, 0);
+    int i = 0, top = 0;
+    long long cost = 0;
+    for (int p = 1; p < int(counts.size()); ++p)
+      for (int z = 0; z < counts[p]; ++z) {
+        int raw = p * d - (++i), a = std::max(0, std::min(hi, raw));
+        cost += std::abs(raw - a);
+        ++heap[a];
+        top = std::max(top, a);
+        if (top > a) {
+          cost += top - a;
+          --heap[top];
+          ++heap[a];
+          while (top > 0 && !heap[top])
+            --top;
+        }
+      }
+    return cost;
+  }
   // Price a boundary-port choice by its effect on the remaining terminals.
-  // The estimate ignores intersections and shared ports; it is not an oracle.
+  // The projection estimate reserves distinct ports within each boundary group,
+  // but ignores interior intersections and changes of boundary assignment.
   bool choose_column(const Path &cx, const Path &cy, Point n, int tx, int ty) {
     long long lx = length(cx), ly = length(cy);
     if (n.x > 2 * std::min(N, M) || n.y > 2 * std::min(N, M))
@@ -385,11 +414,62 @@ public:
     int loss_y = prefix(x_limit, c.height) - prefix(x_limit, y0 - 1);
     long long ax = lx + loss_x - cost(px, tx - 1, ty);
     long long ay = ly + loss_y - cost(py, tx, ty - 1);
+    if (3LL * N >= 4LL * M) {
+      bool middle = px.y == ((M + 1) / 2) * d && py.y == px.y;
+      __int128 sx = __int128(std::numeric_limits<long long>::max()) * 4;
+      __int128 sy = sx;
+      // Each candidate uses a fixed boundary partition. On the middle row,
+      // also price both alternating assignments of equidistant terminals.
+      for (int phase = 0; phase < (middle ? 3 : 1); ++phase) {
+        std::vector<int> bottom(n.x + 1), left(n.y + 1);
+        auto to_bottom = [&](Point p) {
+          long long a = p.y + std::max(0, p.x - tx);
+          long long b = p.x + std::max(0, p.y - ty);
+          if (a != b)
+            return a < b;
+          if (phase)
+            return (p.x / d) % 2 == (phase == 1);
+          return p.x > p.y;
+        };
+        long long base = 0;
+        for (int x = 1; x <= n.x; ++x)
+          for (int y = 1; y <= n.y; ++y) {
+            Point p{x * d, y * d};
+            if (!available(p))
+              continue;
+            if (to_bottom(p)) {
+              ++bottom[x];
+              base += p.y;
+            } else {
+              ++left[y];
+              base += p.x;
+            }
+          }
+        auto score = [&](Point remove, bool column, long long length) {
+          auto bx = bottom, by = left;
+          long long remaining = base;
+          if (to_bottom(remove)) {
+            --bx[remove.x / d];
+            remaining -= remove.y;
+          } else {
+            --by[remove.y / d];
+            remaining -= remove.x;
+          }
+          return __int128(length) + remaining + line_cost(bx, tx - column) +
+                 line_cost(by, ty - !column);
+        };
+        sx = std::min(sx, score(px, true, lx));
+        sy = std::min(sy, score(py, false, ly));
+      }
+      if (sx != sy)
+        return sx < sy;
+    }
     return ax != ay ? ax < ay : (lx != ly ? lx < ly : tx >= ty);
   }
   // Algorithm 4. Baseline alpha = 1.1; the optional candidate uses alpha = 1.
   bool general(int k) {
     region = k;
+    bool paired = revised && M - 2 * d >= 10;
     frontier = {(N + 1) / 2, (M + 1) / 2};
     tx_current = external(true);
     ty_current = external(false);
@@ -407,26 +487,49 @@ public:
           port_priority
               ? (tx > ty ? 1 : (ty > tx ? -1 : 0))
               : (10LL * tx > 11LL * ty ? 1 : (10LL * ty > 11LL * tx ? -1 : 0));
+      int forced_direction = f;
+      bool density_conflict =
+          revised && !paired && f * (1LL * tx * n.y - 1LL * ty * n.x) < 0;
+      if (density_conflict)
+        f = 0;
       // Peel the long strip first. Only the O(min(N,M)^2) corner may
       // compare two channels; all other channel searches are committed.
       if (revised && (n.x > 2 * std::min(N, M) || n.y > 2 * std::min(N, M)))
         f = n.x > n.y ? 1 : -1;
       auto before = paths.size();
-      if (f != 1 && n.y * d <= ty) {
+      if (f != 1 && n.y * d <= ty && (!revised || available({d, n.y * d}))) {
         if (!rule2(false, n.y, std::min(n.x, n.y), 0))
           return false;
-      } else if (f != -1 && n.x * d <= tx) {
+      } else if (f != -1 && n.x * d <= tx &&
+                 (!revised || available({n.x * d, d}))) {
         if (!rule2(true, n.x, std::min(n.x, n.y), 0))
           return false;
       } else {
-        auto cx = revised && f == -1 ? Path{}
-                                     : rule1({n.x * d, M * d}, {tx, 0}, true);
-        auto cy = revised && f == 1 ? Path{}
-                                    : rule1({N * d, n.y * d}, {0, ty}, false);
-        if ((f != 1 && cy.empty()) || (f != -1 && cx.empty()))
+        bool corner = n.x <= 2 * std::min(N, M) && n.y <= 2 * std::min(N, M);
+        auto cx = revised && !corner && f == -1
+                      ? Path{}
+                      : rule1({n.x * d, M * d}, {tx, 0}, true);
+        auto cy = revised && !corner && f == 1
+                      ? Path{}
+                      : rule1({N * d, n.y * d}, {0, ty}, false);
+        if (revised ? cx.empty() && cy.empty()
+                    : (f != 1 && cy.empty()) || (f != -1 && cx.empty()))
           return false;
-        if (revised) {
-          bool column = f ? f == 1 : choose_column(cx, cy, n, tx, ty);
+        if (revised && (cx.empty() || cy.empty())) {
+          commit(cx.empty() ? cy : cx);
+        } else if (revised && !paired) {
+          // A channel that first reaches an interior terminal is still clearing
+          // access to the frontier. Keep its original direction in that case.
+          if (density_conflict && ((forced_direction == 1 && !cx.empty() &&
+                                    cx.back().x < n.x * d) ||
+                                   (forced_direction == -1 && !cy.empty() &&
+                                    cy.back().y < n.y * d)))
+            f = forced_direction;
+          if (cx.back().y == ((M + 1) / 2) * d && cy.back().y == cx.back().y)
+            f = 0;
+          bool column =
+              cy.empty() ||
+              (!cx.empty() && (f ? f == 1 : choose_column(cx, cy, n, tx, ty)));
           commit(column ? cx : cy);
         } else if (f == 1 || (f == 0 && length(cx) <= length(cy))) {
           commit(cx);

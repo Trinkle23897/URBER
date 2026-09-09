@@ -163,6 +163,23 @@ class SingleConstructionTests(unittest.TestCase):
             (111, 27, 12, 326743),
             (24, 13, 6, 6454),
             (44, 33, 12, 138128),
+            (11, 7, 3, 499),
+            (17, 9, 4, 1629),
+            (58, 22, 10, 77608),
+            (66, 24, 11, 114888),
+            # Density alone redirects an interior channel too early here.
+            (97, 28, 13, 282056),
+            (98, 28, 13, 285860),
+            (99, 28, 13, 289692),
+            (22, 14, 6, 6656),
+            (231, 73, 31, 12067011),
+            # A short central fan and middle-row port allocation interact.
+            (19, 9, 4, 1875),
+            (25, 17, 7, 12548),
+            (33, 15, 7, 13913),
+            (35, 15, 7, 14966),
+            (37, 15, 7, 16037),
+            (43, 17, 8, 26787),
         ]:
             with self.subTest(N=n, M=m):
                 with patch("route.subprocess.run", wraps=subprocess.run) as invoke:
@@ -173,9 +190,9 @@ class SingleConstructionTests(unittest.TestCase):
                 self.assertFalse(result["optimality_certified"])
                 self.assertEqual(result["residual_work"], 0)
 
-    def test_remaining_gap_has_no_false_optimality_claim(self):
-        result = construct(11, 7, 3)
-        self.assertGreater(result["total_length"], assignment_lower_bound(11, 7, 3))
+    def test_offline_optimality_does_not_claim_an_online_certificate(self):
+        result = construct(19, 9, 4)
+        self.assertEqual(result["total_length"], assignment_lower_bound(19, 9, 4))
         self.assertFalse(result["optimality_certified"])
         self.assertFalse(result["polished"])
         self.assertEqual(result["residual_work"], 0)

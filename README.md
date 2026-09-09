@@ -53,7 +53,7 @@ The timing panels separate **published CPU times** from **devbox wall times**, w
 | 904 x 442 | 171 | 8,477,760,224 | 8,477,760,224 | 76.60 | 2572 |
 | 949 x 527 | 196 | 14,012,963,087 | 14,012,963,087 | 189.95 | 3868 |
 
-All ten reconstructed lengths match the published Table III values. These reconstruction measurements are archived runs of the same C++ source. The revised rules, legacy portfolio, and MCF are not claimed to have been rerun on these large cases. [Reconstruction data](benchmarks/paper/reproduced_iii.jsonl)
+All ten reconstructed lengths match the published Table III values. These reconstruction measurements are archived runs of the original-rule reconstruction. The revised rules, legacy portfolio, and MCF are not claimed to have been rerun on these large cases. [Reconstruction data](benchmarks/paper/reproduced_iii.jsonl)
 
 </details>
 
@@ -87,18 +87,33 @@ All **5,041** ordered pairs in the paper's `30 <= N,M <= 100` dimension range at
 
 The last two rows use identical recorded pitches. They reproduce the paper's dimension range, but not its complete pitch selection: existing benchmark pitches are retained and the other pitches come from the reconstructed paper method's bisection. Table II above uses the paper's exact pitches.
 
-The expanded scan of **every `1 <= N,M <= 100`** has **9,854 / 10,000 (98.54%)** proven optima, **112** proven nonoptimal results, and **34** unresolved lower-bound gaps. All 10,000 constructions pass geometry verification. Thus the 100% result applies to the Figure 17 range, not to the entire expanded domain.
+The expanded scan of **every `1 <= N,M <= 100`** reaches **10,000 / 10,000 (100%)** proven optima. Every construction passes independent geometry verification and matches the fixed-pitch boundary-assignment lower bound.
 
 ![Complete deterministic-rule is_optimal map for all pairs from 1 to 100](assets/optimality-rules100.png)
 
-Green means equality with a valid lower bound; red means a shorter verified routing is known; yellow means optimality remains unknown. The revised-rule 400 x 400 scan is in progress and has not yet been published. The complete 400 x 400 map below belongs to the archived replay algorithm.
+Green means equality with a valid lower bound; red means a shorter verified routing is known. Every revised-rule result in this map is green.
 
 [Per-case CSV](benchmarks/rules100/results.csv) · [Full observations](benchmarks/rules100/results.jsonl.gz) · [Summary](benchmarks/rules100/summary.json) · [Source and input hashes](benchmarks/rules100/provenance.json)
+
+## Complete 1–400 sweep
+
+**All 160,000 ordered pairs `1 <= N,M <= 400` attain the optimum at their recorded pitch.** Both orientations were actually constructed and independently checked. Each call performs one deterministic construction; no retries, rerouting, parameter portfolios, or online flow solver are used.
+
+| Method | Proven optimal | Rate | Proven nonoptimal | Unknown |
+|---|---:|---:|---:|---:|
+| Paper-method reconstruction | 131,592 | 82.245% | 28,408 | 0 |
+| Revised deterministic rules | **160,000** | **100%** | **0** | **0** |
+
+![Complete revised-rule is_optimal map for every ordered pair from 1 to 400](assets/optimality-rules400.png)
+
+Every revised routing matches the independent boundary-assignment lower bound, or the proved high-pitch fan optimum. It is shorter than the reconstructed paper routing in 28,408 cases and equal in the other 131,592. This certifies each measured instance, including comparison with nonmonotone routes. It does not establish optimality for arbitrary dimensions or different pitches.
+
+[Per-case CSV](benchmarks/rules400/results.csv) · [Full observations](benchmarks/rules400/results.jsonl.gz) · [Summary](benchmarks/rules400/summary.json) · [Source and input hashes](benchmarks/rules400/provenance.json) · [Methodology](docs/benchmark.md)
 
 <details>
 <summary>Archived replay experiment: complete 1–400 optimality map</summary>
 
-This map measures the **legacy replay portfolio**, available through `python -m research.replay`. Its 99.75625% rate does **not** describe the current single-construction default. The raw observations and provenance are preserved unchanged.
+This map measures the **legacy replay portfolio**, available through `python -m research.replay`. Its 99.75625% rate does **not** describe the current single-construction default. The raw observations and provenance are preserved unchanged, including the classifications known at the time of that run.
 
 Every **ordered pair `1 <= N,M <= 400`** has now been constructed and evaluated: **160,000 / 160,000 cases**, including both orientations. Both methods use the same fixed pitch for each case.
 
@@ -201,7 +216,7 @@ The default selects one branch using only `(N,M,d)` and runs it once. Its path g
 
 The complete executable uses `O(G)` time and space, where `G=((N+1)d+1)((M+1)d+1)`. At the paper's pitch scale `d=Theta(NM/(N+M))`, this gives the original `O(N^3 M^3/(N+M)^2)` complexity. The proof accounts for candidate searches, dynamic terminal counts, path construction, and verification. It is not a strict `O(NM)` claim for arbitrary pitch.
 
-Only the high-pitch branch has a general optimality proof. The revised rules reach 100% on the measured Figure 17 domain, but have counterexamples outside it: for example, `11 x 7, d=3` remains above the independent optimum. `optimality_certified: false` means no online certificate, not a proof of nonoptimality. A universally optimal construction at the original complexity remains unfinished.
+Only the high-pitch branch has a general optimality proof. The revised rules reach 100% on the measured domains; this finite validation is not a theorem for arbitrary dimensions or pitches. `optimality_certified: false` means no online certificate, not a proof of nonoptimality. Every benchmark optimum is certified offline by equality with an independent lower bound.
 
 - [Routing model, current dispatch, and legacy replay](docs/algorithm.md)
 - [Legality, complexity, and optimality evidence](docs/guarantees.md)

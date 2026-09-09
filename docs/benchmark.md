@@ -1,6 +1,47 @@
 # Benchmark methodology and provenance
 
-These archived experiments evaluate the **legacy replay portfolio** (`python -m research.replay`), not the current single-construction `route.py`. Its published 99.75625% rate must not be attributed to the current default.
+## Revised deterministic construction
+
+The current `route.py` was evaluated on **all 160,000 ordered pairs** with
+`1 <= N,M <= 400`, at the same recorded pitches as the archived reconstruction
+comparison. Four disjoint shards launched 64 native constructor processes each.
+Every ordered pair, including both orientations, was actually constructed.
+
+All 160,000 outputs pass the independent geometry verifier and equal a valid
+lower bound. The reconstructed paper method has 131,592 optima (82.245%); the
+revised rules have 160,000 (100%). The new routing supplies a shorter verified
+witness for each of the 28,408 nonoptimal paper-method outputs. The Figure 17
+dimension range is 5,041/5,041 optimal, compared with the paper's approximately
+91.9% reported result and the reconstruction's 4,621/5,041 (91.67%).
+
+Pitch is fixed throughout each comparison. It comes from the existing benchmark
+when available and otherwise from the reconstructed method's bisection. This
+is not a claim of minimum feasible pitch or an exact reproduction of every
+pitch used in Figure 17. Table II comparisons separately use its published
+pitches without substitution.
+
+The new rule was developed using counterexamples in this domain. The exhaustive
+result is a verified in-domain result, not an out-of-sample guarantee. General
+optimality beyond the proved high-pitch branch remains open.
+
+- [Per-case CSV](../benchmarks/rules400/results.csv)
+- [Full observations](../benchmarks/rules400/results.jsonl.gz)
+- [Aggregate results](../benchmarks/rules400/summary.json)
+- [Frozen source, input, binary, and artifact hashes](../benchmarks/rules400/provenance.json)
+- [Corresponding 1–100 data](../benchmarks/rules100/summary.json)
+
+No constructor receives a target length or calls the reference solver. The
+runner classifies each already completed and verified construction. Each native
+call uses one deterministic rule sequence. The exporter checks unique coverage,
+fixed inputs, native verification, and classification, and preserves every
+shard's binary hash. These observations measure solution quality; the per-case
+timing fields are not isolated throughput benchmarks.
+
+## Archived replay experiments
+
+The following experiments evaluate the **legacy replay portfolio**
+(`python -m research.replay`). Their historical classifications and raw data are
+preserved; they are not measurements of the current single-construction default.
 
 ## Complete square: 1 <= N,M <= 400
 

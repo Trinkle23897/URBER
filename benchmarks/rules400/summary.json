@@ -1,22 +1,22 @@
 {
   "full_square": {
-    "cases": 10000,
+    "cases": 160000,
     "paper": {
       "statuses": {
-        "optimal": 7773,
-        "nonoptimal": 2227
+        "optimal": 131592,
+        "nonoptimal": 28408
       },
-      "optimal_percent": 77.73
+      "optimal_percent": 82.245
     },
     "revised": {
       "statuses": {
-        "optimal": 10000
+        "optimal": 160000
       },
       "optimal_percent": 100.0
     },
     "revised_vs_paper": {
-      "equal": 7773,
-      "shorter": 2227
+      "equal": 131592,
+      "shorter": 28408
     }
   },
   "paper_dimensions_30_100": {
@@ -40,23 +40,23 @@
     }
   },
   "thin_canonical": {
-    "cases": 970,
+    "cases": 15880,
     "paper": {
       "statuses": {
-        "optimal": 586,
-        "nonoptimal": 384
+        "optimal": 8742,
+        "nonoptimal": 7138
       },
-      "optimal_percent": 60.41237113402062
+      "optimal_percent": 55.050377833753146
     },
     "revised": {
       "statuses": {
-        "optimal": 970
+        "optimal": 15880
       },
       "optimal_percent": 100.0
     },
     "revised_vs_paper": {
-      "equal": 586,
-      "shorter": 384
+      "equal": 8742,
+      "shorter": 7138
     }
   }
 }
