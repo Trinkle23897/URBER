@@ -11,6 +11,7 @@ import time
 from pathlib import Path
 
 from research.experiment import ROOT, optimal, run
+from route import construct
 
 
 def published_cases(table):
@@ -35,10 +36,11 @@ def measure(case, table, method, paths_dir=None):
         path = paths_dir / f"{method}-{n}x{m}-d{d}.json"
     if method == "paper":
         result = run(n, m, d, path=path)
-    elif method in ("geometric", "single_pass"):
-        entrypoint = "research/replay.py" if method == "geometric" else "route.py"
+    elif method == "single_pass":
+        result = construct(n, m, d, path)
+    elif method == "geometric":
         process = subprocess.run(
-            [sys.executable, str(ROOT / entrypoint), str(n), str(m), str(d)]
+            [sys.executable, str(ROOT / "research/replay.py"), str(n), str(m), str(d)]
             + ([str(path)] if path else []),
             capture_output=True,
             text=True,
@@ -58,7 +60,7 @@ def measure(case, table, method, paths_dir=None):
         "method": method,
         "total_length": result["total_length"],
         "wall_seconds": wall,
-        "engine_seconds": result.get("seconds"),
+        "engine_seconds": result.get("constructor_seconds", result.get("seconds")),
         "published_urber_length": case["urber_length"],
         "published_mcf_length": case.get("mcf_length"),
         "delta_to_published_urber": result["total_length"] - case["urber_length"],
@@ -107,7 +109,7 @@ def main():
     if "paper" in methods:
         files += ["build/urber"]
     if "single_pass" in methods:
-        files += ["route.py", "build/urber", "build/pure_fan"]
+        files += ["route.py", "build/construct", "build/pure_fan"]
     if "geometric" in methods:
         files += [
             "research/replay.py",

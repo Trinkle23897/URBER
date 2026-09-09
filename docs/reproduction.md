@@ -1,12 +1,12 @@
 # Reproduce the paper comparisons and figures
 
-`route.py` is now the single-construction default. The archived figures, `geometric` table rows, thin-rectangle audits, and full-square sweep use the legacy replay method (`python -m research.replay`). Those results must not be attributed to the current default.
+`route.py` runs the revised deterministic construction. The current Table II figure and the 1–100 map use this method. The archived `geometric` rows, thin-rectangle audit, and original 1–400 dataset use the legacy replay method (`python -m research.replay`); their rates do not describe the current default.
 
 ## Published data and measurement boundaries
 
 The values in `benchmarks/paper/table_ii.csv` and `table_iii.csv` were transcribed from page 11 of the [paper](https://trinkle23897.github.io/pdf/URBER.pdf#page=11). The source metadata includes the PDF hash, DOI, reported hardware, and the separate 30–100 sweep described on page 12. No paper screenshot is needed to rebuild the charts.
 
-`reproduced_ii.jsonl` contains fresh serial calls of the original-rule reconstruction and the geometric method at every listed Table II pitch. Wall time includes subprocess startup and verification. `reproduced_iii.jsonl` preserves earlier runs of the byte-identical original-rule C++ source; its times are the executable's internal times, not newly measured wall times. The geometric method and full-grid MCF were not rerun on Table III.
+`revised_ii.jsonl` contains serial calls of the original-rule reconstruction and revised deterministic rules at every Table II pitch. `revised_environment.json` records the source hashes and measurement conditions. Other validation jobs were active on the devbox; these timings are descriptive, not an isolated performance benchmark. `reproduced_ii.jsonl` preserves the older replay comparison. Wall time includes subprocess startup and verification. `reproduced_iii.jsonl` preserves earlier runs of the byte-identical original-rule C++ source; its times are the executable's internal times, not newly measured wall times. The geometric method and full-grid MCF were not rerun on Table III.
 
 The Table II quality chart subtracts the **published MCF optimum**, not an intermediate heuristic result. Its timing panels keep the paper's CPU measurements separate from current measurements. Neither panel establishes a cross-machine speedup.
 
@@ -29,7 +29,7 @@ mkdir -p results/routes
 .venv/bin/python route.py 30 30 9 results/routes/single-pass-30x30-d9.json
 
 # Legacy replay construction used in the archived figures.
-.venv/bin/python -m research.replay 30 30 9 results/routes/geometric-30x30-d9.json
+.venv/bin/python -m research.replay 30 30 9 results/routes/single_pass-30x30-d9.json
 ```
 
 The MCF implementation uses unit vertex capacities and directed unit-cost grid moves, with source supplies at terminals and distinct boundary sinks. Exported paths are extracted from positive flow and checked for intersections, intermediate boundary visits, other terminals, and agreement with the optimal objective.
@@ -55,22 +55,71 @@ The repository includes the actual path JSON used in the README under `benchmark
 
 ```sh
 .venv/bin/python -m research.paper --table ii --case 30 30 \
-  --methods mcf paper geometric --paths-dir results/routes \
+  --methods mcf paper single_pass --paths-dir results/routes \
   --output results/example-30.jsonl
 .venv/bin/python -m research.paper --table ii --case 72 13 \
-  --methods mcf paper geometric --paths-dir results/routes \
+  --methods mcf paper single_pass --paths-dir results/routes \
   --output results/example-72.jsonl
 
 .venv/bin/python -m research.plot_routes \
   results/routes/mcf-30x30-d9.json results/routes/paper-30x30-d9.json \
-  results/routes/geometric-30x30-d9.json \
-  --labels "Minimum-cost flow" "Paper method" "Geometric replay" \
+  results/routes/single_pass-30x30-d9.json \
+  --labels "Minimum-cost flow" "Paper method" "Revised deterministic rules" \
   --output results/routing-square.png
 ```
 
 Substitute `72x13-d6` to draw the rectangular example. `make plot` redraws every README figure from the checked-in published data, measurements, and paths, without rerunning expensive solvers.
 
-## Dense optimality maps
+## Complete revised-rule sweep
+
+This runner invokes the current constructor exactly once per ordered pair at the
+recorded pitch. It never passes the optimal length into the constructor.
+
+```sh
+.venv/bin/python -m research.rule_sweep --max-n 400 --workers 64 \
+  --output results/rules-400
+
+# Or use disjoint shards on two hosts.
+.venv/bin/python -m research.rule_sweep --max-n 400 --workers 64 \
+  --shards 2 --shard 0 --output results/rules-shard0
+.venv/bin/python -m research.rule_sweep --max-n 400 --workers 64 \
+  --shards 2 --shard 1 --output results/rules-shard1
+```
+
+Resume with the same command plus `--resume`. Each directory records constructor
+hashes, per-case observations, progress, errors, and a completion marker. Python
+threads launch independent native processes, so native constructions run in
+parallel. The offline lower bounds and old verified lengths are read only for
+classification after a construction has finished.
+
+For the exact checked-in algorithm, collect and validate complete results with:
+
+```sh
+.venv/bin/python -m research.export_rule_sweep \
+  results/rules-shard0 results/rules-shard1 --max-n 400 \
+  --candidate benchmarks/rules100/candidate.json --output results/published-rules400
+.venv/bin/python -m research.plot_full_sweep \
+  results/published-rules400/results.jsonl.gz --max-n 400 --method-kind rules \
+  --output results/optimality-rules400.png
+```
+
+The candidate file preserves the frozen source hashes; use a new manifest when
+changing the algorithm. The exporter checks complete unique coverage, fixed
+pitches, bounds, native verification, classifications, and repeated observations.
+It preserves build hashes from every input. A positive gap alone remains unknown.
+
+The checked-in `benchmarks/rules100` dataset covers all 10,000 ordered pairs through
+100. The revised 400 x 400 run is in progress; the older `benchmarks/full400`
+dataset measures replay. To redraw the current published map:
+
+```sh
+.venv/bin/python -m research.plot_full_sweep benchmarks/rules100/results.jsonl.gz \
+  --max-n 100 --method-kind rules --output results/optimality-rules100.png
+.venv/bin/python -m research.plot_paper --results benchmarks/paper/revised_ii.jsonl \
+  --method single_pass --output-stem results/paper-comparison
+```
+
+## Archived replay optimality maps
 
 To reconstruct the original paper method on the completed thin-rectangle dataset and compare it with the final geometric results:
 

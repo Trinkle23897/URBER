@@ -25,6 +25,7 @@ def main():
     parser.add_argument("--max-n", type=int, default=400)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--allow-incomplete", action="store_true")
+    parser.add_argument("--method-kind", choices=("replay", "rules"), default="replay")
     args = parser.parse_args()
     rows = {}
     for path in args.inputs:
@@ -35,6 +36,18 @@ def main():
         )
         for line in text.splitlines():
             row = json.loads(line)
+            if args.method_kind == "rules":
+                if not row["constructor"].get("verified"):
+                    raise ValueError("Unverified deterministic construction")
+                row = dict(
+                    row,
+                    paper={"verified": True, "total_length": row["paper_length"]},
+                    geometric=row["constructor"],
+                    legacy={
+                        "verified": True,
+                        "total_length": row["legacy_replay_length"],
+                    },
+                )
             key = row["N"], row["M"]
             if key in rows or not all(1 <= x <= args.max_n for x in key):
                 raise ValueError(f"Duplicate or out-of-domain case: {key}")
@@ -55,12 +68,20 @@ def main():
         axes,
         ["paper", "geometric"],
         ["geometric", "paper"],
-        ["Paper-method reconstruction", "Improved geometric replay"],
+        [
+            "Paper-method reconstruction",
+            "Revised deterministic rules"
+            if args.method_kind == "rules"
+            else "Improved geometric replay",
+        ],
     ):
         grid = np.zeros((args.max_n, args.max_n), dtype=np.uint8)
         count = 0
         for (n, m), row in rows.items():
-            status = classify(row[method], row["lower_bound"], row[other])
+            witness = row[other]
+            if args.method_kind == "rules":
+                witness = min((witness, row["legacy"]), key=lambda v: v["total_length"])
+            status = classify(row[method], row["lower_bound"], witness)
             grid[n - 1, m - 1] = statuses[status]
             count += status == "optimal"
         ax.imshow(

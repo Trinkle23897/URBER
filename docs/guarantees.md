@@ -8,11 +8,63 @@ G=((N+1)d+1)((M+1)d+1)=\Theta(NMd^2).
 
 ## Current single-construction default
 
-`route.py` selects its branch before construction and invokes one native executable. Below the fan threshold, it executes the unchanged original rules, including their verification. There is no replay or additional search complexity. Above the threshold, the explicit fan emits at most `O(NM min(N,M))` bends; since `min(N,M) <= 2d`, this is `O(G)`. The independent vertex-by-vertex verifier costs `O(G)` time and space. At the paper's pitch scale `d=Theta(NM/(N+M))`, the grid cost is `O(N^3 M^3/(N+M)^2)`. For arbitrary supplied pitch, keep the dependence on `d`; do not claim strict `O(NM)`.
+The default chooses one rule regime from `(N,M,d)` before constructing paths. It
+has no retry budget, route restoration, residual search, or online solver.
+Every successful result passes the independent geometry verifier.
 
-The paper-rule construction terminates without a retry budget: every successful iteration of `general` commits at least one previously unrouted terminal, or returns failure. There are at most `NM` such commits. Its channel search is bounded by `gx+gy+2` steps, and its central-row and symmetry loops are finite. The fan uses explicit finite loops. Successful results pass the geometry verifier; failed construction is returned to the caller without fallback.
+Let `A=max(N,M)` and `B=min(N,M)`. The native low-pitch constructor first rejects
+inputs that violate the necessary boundary-capacity inequality
 
-The current default makes **no non-regression promise against the archived replay portfolio**. It matches the paper reconstruction below the threshold. On Table II it matches eight published MCF optima; the known gaps at `(111,27,12)` and `(98,51,20)` remain four units. The general optimality theorem covers only the high-pitch fan.
+\[
+AB \le 2(A+B+2)d-4.
+\]
+
+For accepted inputs, its time and space are `O(G)`:
+
+1. **Dense original-rule branch, `3d<B`.** The capacity inequality gives
+   `A <= 2d(B+2)/(B-2d) = O(d)`; also `B<=A`. Each monotone channel search has at
+   most `O((A+B)d)=O(d^2)` steps. There are `O(AB)` channel searches: each successful
+   iteration commits a new terminal, and a failed search stops the construction.
+   Repeated frontier scans are no larger. Thus this branch takes `O(ABd^2)=O(G)`.
+2. **Revised branch, `B/3<=d<B/2`.** First peel any remaining strip longer than
+   `2B`, constructing only its selected channel. Charge successful searches and
+   commits to disjoint path vertices. Once the frontier is at most `2B` in each
+   direction, at most `O(B^2)` terminals remain. Each pair of candidate searches
+   takes `O((A+B)d)`, giving `O(AB^2d)=O(ABd^2)=O(G)` because `B=O(d)`.
+   A failed search stops the construction and adds at most `O(G)` work.
+3. **Bookkeeping.** The revised frontier moves only inward. Fenwick initialization
+   and updates take `O(AB log A log B)`. Since `B-2d>=1`, the capacity inequality
+   also gives `A=O(B^2)`. Therefore the logarithmic factors are bounded by `O(d^2)`.
+   Central-axis reassignment takes `O(AB)`. Masks, storage, path output, and the
+   vertex-by-vertex verifier require at most `O(G)` work and space.
+4. **High-pitch fan, `2d>=B`.** Explicit paths have `O(AB^2)` bends and are checked
+   in `O(G)` time. Since `B<=2d`, their representation also fits within `O(G)`.
+
+At the paper's pitch scale `d=Theta(NM/(N+M))`, this is
+
+\[
+O\left(\frac{N^3M^3}{(N+M)^2}\right),
+\]
+
+the original asymptotic complexity. It is not strict `O(NM)` for variable pitch.
+
+Termination does not depend on eventually finding an improvement. Every general
+iteration either commits at least one previously unrouted terminal or returns
+failure. Each channel search has an explicit `gx+gy+2` step limit. Central fans,
+axis reassignment, and symmetry copies use finite loops.
+
+## Optimality limits of the revised rules
+
+The revised rules close known gaps such as `(105,21,10)`, `(111,27,12)`,
+`(98,51,20)`, `(24,13,6)`, and `(44,33,12)`, in one construction. This does **not**
+prove that they always attain the minimum length. For example, `(11,7,3)` remains
+a counterexample for the current integrated rules.
+
+Only the high-pitch fan has a general optimality proof. In the other branches,
+`optimality_certified: false` means no online certificate; it does not imply a
+nonoptimal result. Offline equality with a valid lower bound certifies individual
+instances. The default makes no non-regression promise against the archived
+replay portfolio. Historical replay rates are not rates of the revised rules.
 
 ## Legacy replay: legality and non-regression
 

@@ -15,7 +15,7 @@ def construct(n, m, d, output=None):
     if min(n, m, d) < 1:
         raise ValueError("N, M and d must be positive")
     exact_fan = 2 * d >= min(n, m)
-    executable = ROOT / "build" / ("pure_fan" if exact_fan else "urber")
+    executable = ROOT / "build" / ("pure_fan" if exact_fan else "construct")
     command = [str(executable), str(n), str(m), str(d)]
     if output is not None:
         command.append(str(output))
@@ -25,7 +25,7 @@ def construct(n, m, d, output=None):
     if not result.get("verified"):
         raise RuntimeError("construction did not pass geometry verification")
     result.update(
-        method="proven_fan" if exact_fan else "paper_single_pass",
+        method="proven_fan" if exact_fan else "geometric_single_pass",
         optimality_certified=exact_fan,
         polished=False,
         residual_work=0,

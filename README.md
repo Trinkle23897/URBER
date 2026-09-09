@@ -14,13 +14,11 @@ These are the paper's results, measured using one thread on an Intel Xeon E5620 
 
 ## Direct comparison on the published benchmarks
 
-**Current default:** `route.py` makes one construction at the supplied pitch. It uses the proved fan when `2*d >= min(N,M)` and the original reconstructed rules otherwise. There is no replay, parameter portfolio, orientation search, fallback, or pitch search. All Table II cases take the original-rule branch, so the current default has the reconstruction lengths below: **8/10 match the published MCF optimum**. [Current measurements](benchmarks/paper/single_pass_ii.jsonl) · [Environment and source hashes](benchmarks/paper/single_pass_environment.json).
-
-The replay column and figures below are **historical results**, not performance claims for the current default.
+**The revised deterministic rules match the published MCF optimum on all ten Table II cases.** Each case uses one construction at the supplied pitch. The router chooses the proved fan at high pitch, preserves the canonical original construction on dense grids, and changes central fan assignment and boundary choices in the remaining regime. It does not replay paths, retry parameters, or call a solver online.
 
 Every entry below uses the exact `(N, M, d)` from **Table II**. `L*` is the optimum reported for the paper's MCF baseline.
 
-| N x M | d | Published MCF L* | Published URBER L | Paper-method reconstruction L | Legacy replay L |
+| N x M | d | Published MCF L* | Published URBER L | Paper-method reconstruction L | Revised rules L |
 |---|---:|---:|---:|---:|---:|
 | 30 x 30 | 9 | 55,112 | 55,112 | 55,112 | 55,112 |
 | 45 x 45 | 14 | 273,183 | 273,183 | 273,183 | 273,183 |
@@ -33,11 +31,11 @@ Every entry below uses the exact `(N, M, d)` from **Table II**. `L*` is the opti
 | 69 x 58 | 19 | 1,034,338 | 1,034,338 | 1,034,338 | 1,034,338 |
 | 98 x 51 | 20 | 1,399,334 | 1,399,338 | 1,399,338 | 1,399,334 |
 
-The paper-method reconstruction matches nine of the ten published URBER lengths. Its `111 x 27` result is four units longer than the published value; that reconstruction discrepancy is kept visible. The legacy replay method matches the published MCF optimum on all ten cases, including both `111 x 27` and `98 x 51`.
+The paper-method reconstruction matches nine of the ten published URBER lengths. Its `111 x 27` result is four units longer than the published value; that reconstruction discrepancy is kept visible. The revised rules match the published MCF optimum on all ten cases, including both `111 x 27` and `98 x 51`.
 
 ![Comparison on the paper's Table II benchmarks](assets/paper-comparison.png)
 
-The timing panels deliberately separate **published CPU times** from **local end-to-end measurements**. Different hardware, implementations, and measurement boundaries prevent a direct cross-panel speedup claim. The legacy replay method improves solution quality but can be substantially slower than the original rules. [Measured data](benchmarks/paper/reproduced_ii.jsonl) · [Measurement environment](benchmarks/paper/reproduction_environment.json)
+The timing panels separate **published CPU times** from **devbox wall times**, which include startup and geometry verification. The measured methods ran serially within their job while other validation jobs were active. Different hardware and measurement boundaries prevent a cross-panel speedup claim. [Measured data](benchmarks/paper/revised_ii.jsonl) · [Environment and source hashes](benchmarks/paper/revised_environment.json)
 
 <details>
 <summary>Table III: published large-scale results and reconstructed lengths</summary>
@@ -55,7 +53,7 @@ The timing panels deliberately separate **published CPU times** from **local end
 | 904 x 442 | 171 | 8,477,760,224 | 8,477,760,224 | 76.60 | 2572 |
 | 949 x 527 | 196 | 14,012,963,087 | 14,012,963,087 | 189.95 | 3868 |
 
-All ten reconstructed lengths match the published Table III values. These reconstruction measurements are archived runs of the same C++ source. The improved geometric portfolio and MCF are not claimed to have been rerun on these large cases. [Reconstruction data](benchmarks/paper/reproduced_iii.jsonl)
+All ten reconstructed lengths match the published Table III values. These reconstruction measurements are archived runs of the same C++ source. The revised rules, legacy portfolio, and MCF are not claimed to have been rerun on these large cases. [Reconstruction data](benchmarks/paper/reproduced_iii.jsonl)
 
 </details>
 
@@ -65,13 +63,40 @@ The figures below show actual exported paths. Colors identify the exit side; dot
 
 **Table II, 30 x 30, d=9 — L=55,112**
 
-![MCF, paper method, and geometric replay on 30 by 30 terminals](assets/routing-square.png)
+![MCF, paper method, and revised rules on 30 by 30 terminals](assets/routing-square.png)
 
 **Table II, 72 x 13, d=6 — L=26,498**
 
-![MCF, paper method, and geometric replay on 72 by 13 terminals](assets/routing-rectangle.png)
+![MCF, paper method, and revised rules on 72 by 13 terminals](assets/routing-rectangle.png)
 
-## Archived replay experiment: complete 1–400 optimality map
+**A repaired counterexample, 24 x 13, d=6 — 6,522 → 6,454**
+
+The revised central fan rule reaches the independently computed MCF optimum in one construction.
+
+![Minimum-cost flow, paper rules, and revised rules on a repaired counterexample](assets/routing-improvement.png)
+
+## Comparison with Figure 17
+
+All **5,041** ordered pairs in the paper's `30 <= N,M <= 100` dimension range attain the independent lower bound under the revised rules.
+
+| Method / experiment | Proven optimal in the 5,041-case range |
+|---|---:|
+| Original paper, reported result | Approximately 91.9% |
+| Paper-method reconstruction at the recorded pitches | 4,621 / 5,041 = 91.67% |
+| Revised deterministic rules at the same pitches | **5,041 / 5,041 = 100%** |
+
+The last two rows use identical recorded pitches. They reproduce the paper's dimension range, but not its complete pitch selection: existing benchmark pitches are retained and the other pitches come from the reconstructed paper method's bisection. Table II above uses the paper's exact pitches.
+
+The expanded scan of **every `1 <= N,M <= 100`** has **9,854 / 10,000 (98.54%)** proven optima, **112** proven nonoptimal results, and **34** unresolved lower-bound gaps. All 10,000 constructions pass geometry verification. Thus the 100% result applies to the Figure 17 range, not to the entire expanded domain.
+
+![Complete deterministic-rule is_optimal map for all pairs from 1 to 100](assets/optimality-rules100.png)
+
+Green means equality with a valid lower bound; red means a shorter verified routing is known; yellow means optimality remains unknown. The revised-rule 400 x 400 scan is in progress and has not yet been published. The complete 400 x 400 map below belongs to the archived replay algorithm.
+
+[Per-case CSV](benchmarks/rules100/results.csv) · [Full observations](benchmarks/rules100/results.jsonl.gz) · [Summary](benchmarks/rules100/summary.json) · [Source and input hashes](benchmarks/rules100/provenance.json)
+
+<details>
+<summary>Archived replay experiment: complete 1–400 optimality map</summary>
 
 This map measures the **legacy replay portfolio**, available through `python -m research.replay`. Its 99.75625% rate does **not** describe the current single-construction default. The raw observations and provenance are preserved unchanged.
 
@@ -107,6 +132,8 @@ The earlier thin-rectangle test (`1 <= N <= 400`, `1 <= M <= floor(N/5)`) remain
 
 </details>
 
+</details>
+
 ## Build
 
 Requires GCC or Clang with C++17 support, Make, and Python 3.11 or later. The paper and geometric routers need no external solver. Install the research dependencies for MCF, tests, and figures:
@@ -130,7 +157,7 @@ The following commands all solve the paper's `30 x 30, d=9` example and export t
 # 2. Reconstruction of the paper's original rule-based method.
 ./build/urber 30 30 9 results/routes/paper-30x30-d9.json
 
-# 3. Current default: exactly one construction at the supplied pitch.
+# 3. Revised deterministic rules: one construction at the supplied pitch.
 .venv/bin/python route.py 30 30 9 results/routes/single-pass-30x30-d9.json
 
 # Historical replay method used in the archived figures and 400x400 sweep.
@@ -152,6 +179,10 @@ Reproduce the published benchmark tables:
 # Paper method: every large-scale case in Table III.
 .venv/bin/python -m research.paper --table iii --methods paper
 
+# Revised rules: every ordered pair at the recorded 1..400 pitches.
+.venv/bin/python -m research.rule_sweep --max-n 400 --workers 64 \
+  --output results/rules-400
+
 # Reproduce the legacy replay sweep over every ordered pair in 1..400.
 .venv/bin/python -m research.full_sweep --max-n 400 --workers 32 \
   --output results/full-400
@@ -168,9 +199,9 @@ make plot PYTHON=.venv/bin/python
 
 The default selects one branch using only `(N,M,d)` and runs it once. Its path geometry is deterministic; timing fields naturally vary. A failed construction returns an error without rerouting or increasing pitch. The legacy flags `--improved` and `--polish` are never passed to the paper executable.
 
-The low-pitch branch runs the unchanged original-rule reconstruction, preserving its complexity. The high-pitch fan and geometry verification cost at most `O(G)`, where `G=((N+1)d+1)((M+1)d+1)`. At the paper's pitch scale `d=Theta(NM/(N+M))`, this is compatible with the original `O(N^3 M^3/(N+M)^2)` bound. This is not a strict `O(NM)` claim for arbitrary pitch.
+The complete executable uses `O(G)` time and space, where `G=((N+1)d+1)((M+1)d+1)`. At the paper's pitch scale `d=Theta(NM/(N+M))`, this gives the original `O(N^3 M^3/(N+M)^2)` complexity. The proof accounts for candidate searches, dynamic terminal counts, path construction, and verification. It is not a strict `O(NM)` claim for arbitrary pitch.
 
-Only the high-pitch branch has a general optimality proof. The low-pitch branch can be suboptimal: `98 x 51, d=20` still has length 1,399,338 versus the published optimum 1,399,334. Removing replay does not solve that gap. `optimality_certified: false` means no online certificate, not a proof of nonoptimality. A single-construction method that is always optimal at the original complexity remains an open objective of this implementation.
+Only the high-pitch branch has a general optimality proof. The revised rules reach 100% on the measured Figure 17 domain, but have counterexamples outside it: for example, `11 x 7, d=3` remains above the independent optimum. `optimality_certified: false` means no online certificate, not a proof of nonoptimality. A universally optimal construction at the original complexity remains unfinished.
 
 - [Routing model, current dispatch, and legacy replay](docs/algorithm.md)
 - [Legality, complexity, and optimality evidence](docs/guarantees.md)

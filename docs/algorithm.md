@@ -6,11 +6,70 @@ Every terminal needs one axis-aligned grid path to a distinct boundary vertex. P
 
 The comparison problem permits nonmonotone paths. The pure constructors emit monotone paths; matching a valid lower bound still proves optimality against the larger feasible set.
 
-## Current runtime dispatch
+## Current deterministic rules
 
-For `2*d >= min(N,M)`, an explicit fan construction attains a proved optimum. It is described in [fan-proof.md](fan-proof.md).
+The constructor uses `A=max(N,M)`, `B=min(N,M)` and transposes exported paths back
+into the requested orientation. It chooses its rule regime before routing:
 
-Otherwise, `route.py` invokes the original `build/urber` rules once with the supplied `(N,M,d)`, without `--improved` or `--polish`. It preserves the input orientation. Failure is returned directly: there is no fallback, pitch adjustment, reconstruction, or parameter search. The fixed rule order gives repeatable path geometry, but does not prove low-pitch optimality.
+- `2*d >= B`: the explicit, proved-optimal [fan construction](fan-proof.md).
+- `3*d < B`: the original reconstructed rules in canonical orientation.
+- Otherwise: the revised central assignment and boundary-choice rules below.
+
+`route.py` invokes exactly one native constructor. There is no reconstruction,
+parameter portfolio, residual repair, online oracle, or pitch adjustment. A failed
+construction returns an error. Timing fields vary; the paths are deterministic.
+
+### Central assignment
+
+On an odd horizontal middle axis, alternate quadrant ownership with phase
+`floor(A/2) mod 2`, so the innermost axis terminal aligns with the adjacent central
+column. Retain the paper's vertical-axis and center ownership rules.
+
+For an odd `B` with `3*A >= 4*B`, cap the initial horizontal central fan at
+
+```
+C = floor((A + 1 + [A mod 4 = 3])/3)       if B = 2*d + 1
+C = floor(A/2) - [A is even]              otherwise.
+```
+
+The actual cap is also limited to `2*d-1`. In other cases retain `floor(A/2)`.
+After the central fans, assign the remaining horizontal-axis terminals from the
+inside outward, alternating quadrant ownership and reflecting through the center.
+When an odd number remains, start with the opposite-quadrant pair that has more
+unused boundary capacity after accounting for its non-axis terminals.
+
+These are construction rules supported by the recorded experiments, not a general
+optimality theorem. In particular, a shorter central fan does not by itself prove
+that the remaining routing can be completed optimally.
+
+### Boundary choice
+
+Let `(t_x,t_y)` be the available bottom/left boundary prefixes in a quadrant, and
+let `P` contain its unrouted terminals. The two candidate channels have endpoints
+`p_x,p_y` and lengths `l_x,l_y`. Use the relaxed distance estimate
+
+```
+c((x,y), a,b) = min(y + max(0,x-a), x + max(0,y-b)).
+```
+
+When the original boundary-priority rule permits either direction, compare
+
+```
+S_x = l_x + sum(c(p,t_x-1,t_y) for p in P except p_x)
+S_y = l_y + sum(c(p,t_x,t_y-1) for p in P except p_y).
+```
+
+Choose the smaller score; break ties by channel length, then by available prefix
+length. Commit one channel. The estimate accounts for the remaining terminals but
+relaxes shared exits and internal intersections; it is not an exact future cost.
+Two-dimensional Fenwick counts compute the score difference without rescanning
+all terminals. The shared part of the two sums cancels.
+
+The original row/column fan rules still apply. A long remaining strip is peeled
+in its long direction using only the selected channel. Comparing two channels is
+restricted to a corner with at most `2*B` rows and columns. This restriction, cached
+frontiers, and disjoint committed paths give the original asymptotic work bound;
+see [guarantees.md](guarantees.md).
 
 ## Legacy replay dispatch
 

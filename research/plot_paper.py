@@ -21,7 +21,18 @@ def main():
     parser.add_argument(
         "--results", type=Path, default=ROOT / "benchmarks/paper/reproduced_ii.jsonl"
     )
+    parser.add_argument(
+        "--method", choices=("geometric", "single_pass"), default="geometric"
+    )
+    parser.add_argument(
+        "--output-stem", type=Path, default=ROOT / "assets/paper-comparison"
+    )
     args = parser.parse_args()
+    method_label = (
+        "Revised deterministic rules"
+        if args.method == "single_pass"
+        else "Improved geometric replay"
+    )
     cases = published_cases("ii")
     measured = {
         (r["N"], r["M"], r["method"]): r
@@ -30,7 +41,11 @@ def main():
     x = np.arange(len(cases))
     labels = [f"{r['N']} x {r['M']}" for r in cases]
     colors = dict(
-        published="#718096", paper="#2563a6", geometric="#14856d", mcf="#b3693d"
+        published="#718096",
+        paper="#2563a6",
+        geometric="#14856d",
+        single_pass="#14856d",
+        mcf="#b3693d",
     )
     plt.rcParams.update({"svg.hashsalt": "urber-paper", "font.size": 10})
     fig = plt.figure(figsize=(15, 10), facecolor="#fafbf9")
@@ -44,13 +59,13 @@ def main():
         for r in cases
     ]
     geometric = [
-        measured[r["N"], r["M"], "geometric"]["total_length"] - r["mcf_length"]
+        measured[r["N"], r["M"], args.method]["total_length"] - r["mcf_length"]
         for r in cases
     ]
     for offset, values, color, label in [
         (-0.24, published, colors["published"], "Published URBER"),
         (0, paper, colors["paper"], "Paper-method reconstruction"),
-        (0.24, geometric, colors["geometric"], "Improved geometric replay"),
+        (0.24, geometric, colors["geometric"], method_label),
     ]:
         quality.bar(x + offset, values, width=0.22, color=color, label=label)
         quality.scatter(x + offset, values, color=color, s=18, zorder=3)
@@ -84,7 +99,7 @@ def main():
         )
     for key, label in [
         ("paper", "Paper-method reconstruction"),
-        ("geometric", "Geometric replay"),
+        (args.method, method_label),
     ]:
         local.semilogy(
             x,
@@ -125,7 +140,8 @@ def main():
         color="#586b66",
     )
     for ext in ("png", "svg"):
-        path = ROOT / f"assets/paper-comparison.{ext}"
+        path = args.output_stem.with_suffix(f".{ext}")
+        path.parent.mkdir(parents=True, exist_ok=True)
         fig.savefig(path, dpi=160, metadata={"Date": None} if ext == "svg" else None)
         if ext == "svg":
             path.write_text(

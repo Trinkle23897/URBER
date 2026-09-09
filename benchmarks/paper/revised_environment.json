@@ -1,0 +1,20 @@
+{
+  "created_utc": "2026-09-09T21:37:26.712853+00:00",
+  "platform": "Linux-6.14.0-1017-azure-x86_64-with-glibc2.39",
+  "python": "3.12.13 (main, May  8 2026, 05:12:16) [GCC 13.3.0]",
+  "compiler": "g++ (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0",
+  "measurement": "Both measured methods invoke one native subprocess from the same Python benchmark process. Serial calls within this job; other validation jobs were running on the devbox. Wall time includes native process startup and independent geometry verification.",
+  "source_hashes": {
+    "src/router.hpp": "974f9c7acfa08a544a978225f2f73b4acd3c9d455631ee95b064364eb89dd3df",
+    "src/construct.cpp": "ab87d9d3cc8d4428f8d67d3e4e4284a7fdd36e4f4aaf1fb5ae839a2e4625e201",
+    "src/urber.cpp": "64c738dced521edab78c761eb07a8ff00b0f3db006e0a8eea6f27695c8d0e0dd",
+    "src/pure/pure_fan.cpp": "5e290f052220eba2ba80adf612f01d7680ec4e65d4810423933a6c82446b51e1",
+    "src/verify.hpp": "a3a21fcaf4f29ec31f3a2fcea844d02eebb9aee3300ea3d3d7bac323009d1477",
+    "src/routing_types.hpp": "f05afad0c8d148ea46346f1b11c630bdd109a72f487e6dd6eb90f8145ef83ca5",
+    "route.py": "8a36acc66aa223765f641e531ab0099b9cf3f226201095b2e70cd52b3db22a22",
+    "research/paper.py": "6e278b76cb3c364adea3aa88c0dc214128a7320b0974ce92bf732ef560a722dd",
+    "build/construct": "ffa8e92641a6618241251649c09aff839292274ed752db86b0fa9ec77d0eb4ba",
+    "build/urber": "201e557e14965556c6e1c09aa01b3f2e4d96acae43c39f882e7ff19879ce3cda",
+    "build/pure_fan": "33310713d17ab0aeaa99e0b535712a297f9045d7b6dbce42fa823714ae8fe654"
+  }
+}

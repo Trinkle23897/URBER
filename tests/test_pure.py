@@ -156,11 +156,27 @@ class SingleConstructionTests(unittest.TestCase):
             self.assertEqual(invoke.call_count, 1)
             self.assertFalse(path.exists())
 
-    def test_known_gap_is_retained_without_a_false_optimality_claim(self):
-        result = construct(98, 51, 20)
-        self.assertEqual(result["total_length"], 1399338)
+    def test_revised_rules_close_known_gaps_in_one_construction(self):
+        for n, m, d, expected in [
+            (98, 51, 20, 1399334),
+            (105, 21, 10, 140533),
+            (111, 27, 12, 326743),
+            (24, 13, 6, 6454),
+            (44, 33, 12, 138128),
+        ]:
+            with self.subTest(N=n, M=m):
+                with patch("route.subprocess.run", wraps=subprocess.run) as invoke:
+                    result = construct(n, m, d)
+                self.assertEqual(invoke.call_count, 1)
+                self.assertEqual(result["total_length"], expected)
+                self.assertTrue(result["verified"])
+                self.assertFalse(result["optimality_certified"])
+                self.assertEqual(result["residual_work"], 0)
+
+    def test_remaining_gap_has_no_false_optimality_claim(self):
+        result = construct(11, 7, 3)
+        self.assertGreater(result["total_length"], assignment_lower_bound(11, 7, 3))
         self.assertFalse(result["optimality_certified"])
-        self.assertFalse(result["improved"])
         self.assertFalse(result["polished"])
         self.assertEqual(result["residual_work"], 0)
 

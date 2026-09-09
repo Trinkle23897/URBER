@@ -1,0 +1,44 @@
+{
+  "candidate": {
+    "candidate": "deterministic-central-and-port-rules-v3",
+    "base_commit": "8480fb97ef667beaec1b4a02a0a8e34de9736f56",
+    "hashes": {
+      "Makefile": "f04842717d2738ec6881496f6950e809ff31ac6e8bec1912e5c8251b0af96670",
+      "route.py": "8a36acc66aa223765f641e531ab0099b9cf3f226201095b2e70cd52b3db22a22",
+      "research/rule_sweep.py": "671e4ee16f8bb2f8df7bf1d39170af28063f9bf40e2dcf1da25aa6eed0888423",
+      "research/__init__.py": "daaccd25f781eb0271d86f710e7c33bceb62c55149e058fefab2cf5d3bf53723",
+      "src/residual_repair.hpp": "eed65e28d688e9c91a3961fcd85e84358d38d983b24ff299ca820c455807d2a0",
+      "src/routing_types.hpp": "f05afad0c8d148ea46346f1b11c630bdd109a72f487e6dd6eb90f8145ef83ca5",
+      "src/urber.cpp": "64c738dced521edab78c761eb07a8ff00b0f3db006e0a8eea6f27695c8d0e0dd",
+      "src/construct.cpp": "ab87d9d3cc8d4428f8d67d3e4e4284a7fdd36e4f4aaf1fb5ae839a2e4625e201",
+      "src/router.hpp": "974f9c7acfa08a544a978225f2f73b4acd3c9d455631ee95b064364eb89dd3df",
+      "src/verify.hpp": "a3a21fcaf4f29ec31f3a2fcea844d02eebb9aee3300ea3d3d7bac323009d1477",
+      "benchmarks/full400/results.csv": "89e8343c3ca8c0ffa3899216eeff23c3c250de51327ed23303d89d1a480bf1ff",
+      "src/pure/pure_router.cpp": "bdcf0cde61ac71073403679feef4937ebfd0303b3931473ca0b21c435e944057",
+      "src/pure/pure_fan.cpp": "5e290f052220eba2ba80adf612f01d7680ec4e65d4810423933a6c82446b51e1"
+    }
+  },
+  "max_n": 100,
+  "consistent_repeated_rows": 0,
+  "inputs": [
+    {
+      "rows": 10000,
+      "results_sha256": "beda5160267729ca417e1f1099e17686f24d05d374610f230e25d4d0ae671af3",
+      "signature": "73808b1cb6152927ce9187493eb298ca060921ffffde6ec5a35c2459a7967253",
+      "files": {
+        "route.py": "8a36acc66aa223765f641e531ab0099b9cf3f226201095b2e70cd52b3db22a22",
+        "research/rule_sweep.py": "671e4ee16f8bb2f8df7bf1d39170af28063f9bf40e2dcf1da25aa6eed0888423",
+        "build/construct": "ffa8e92641a6618241251649c09aff839292274ed752db86b0fa9ec77d0eb4ba",
+        "build/pure_fan": "33310713d17ab0aeaa99e0b535712a297f9045d7b6dbce42fa823714ae8fe654",
+        "benchmarks/full400/results.csv": "89e8343c3ca8c0ffa3899216eeff23c3c250de51327ed23303d89d1a480bf1ff"
+      },
+      "max_n": 100,
+      "shards": 1,
+      "shard": 0
+    }
+  ],
+  "artifacts": {
+    "results.csv": "4c1d70b791c185ea475de29d881656548f2a6f7ea6ae99efa5eddab24172350b",
+    "results.jsonl.gz": "a15ce05f0f5bc6494c02177b8d566d7d0cf2752c60736bda8a65902b8dd83ea9"
+  }
+}
