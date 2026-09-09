@@ -1,20 +1,29 @@
-"""End-to-end coverage for the standalone pure geometric entry point."""
+"""Routing contracts for the default constructor and archived replay method."""
 
 import json
-from pathlib import Path
 import subprocess
 import sys
 import tempfile
 import unittest
+from pathlib import Path
+from unittest.mock import patch
 
-from research.benchmark import audit, load_cases, ROOT
+from research.benchmark import ROOT, audit, load_cases
 from research.bounds import assignment_lower_bound
+from route import construct
 
 
-class PureRoutingTests(unittest.TestCase):
+class LegacyReplayTests(unittest.TestCase):
     def route(self, n, m, d, *extra):
         process = subprocess.run(
-            [sys.executable, str(ROOT / "route.py"), str(n), str(m), str(d), *extra],
+            [
+                sys.executable,
+                str(ROOT / "research/replay.py"),
+                str(n),
+                str(m),
+                str(d),
+                *extra,
+            ],
             capture_output=True,
             text=True,
             check=True,
@@ -64,6 +73,7 @@ class PureRoutingTests(unittest.TestCase):
     def test_invalid_dimensions_are_rejected(self):
         process = subprocess.run(
             [sys.executable, str(ROOT / "route.py"), "0", "5", "1"],
+            check=False,
             capture_output=True,
             text=True,
         )
@@ -94,10 +104,65 @@ class PureRoutingTests(unittest.TestCase):
             saved["run_signature"] = "stale"
             path.write_text(json.dumps(saved) + "\n")
             result = subprocess.run(
-                command + ["--resume"], cwd=ROOT, capture_output=True, text=True
+                command + ["--resume"],
+                cwd=ROOT,
+                capture_output=True,
+                text=True,
+                check=False,
             )
             self.assertNotEqual(result.returncode, 0)
             self.assertIn("checkpoint does not match", result.stderr)
+
+
+class SingleConstructionTests(unittest.TestCase):
+    def test_one_native_construction_and_repeatable_paths(self):
+        # Exercise both sides of the fan threshold, both orientations, and odd axes.
+        for n, m, d in [
+            (30, 30, 9),
+            (72, 13, 6),
+            (13, 72, 6),
+            (6, 4, 2),
+            (5, 11, 3),
+            (11, 5, 3),
+        ]:
+            with self.subTest(N=n, M=m, d=d), tempfile.TemporaryDirectory() as folder:
+                path = Path(folder) / "paths.json"
+                with patch("route.subprocess.run", wraps=subprocess.run) as invoke:
+                    first = construct(n, m, d, path)
+                self.assertEqual(invoke.call_count, 1)
+                saved = path.read_bytes()
+                second = construct(n, m, d, path)
+                self.assertEqual(path.read_bytes(), saved)
+                self.assertEqual(first["total_length"], second["total_length"])
+                self.assertEqual(first["optimality_certified"], 2 * d >= min(n, m))
+                exported = json.loads(saved)
+                self.assertEqual(
+                    (exported["N"], exported["M"], exported["d"]), (n, m, d)
+                )
+                self.assertEqual(len(exported["paths"]), n * m)
+                if first["optimality_certified"]:
+                    self.assertEqual(
+                        first["total_length"], assignment_lower_bound(n, m, d)
+                    )
+
+    def test_failed_construction_does_not_retry_or_write_paths(self):
+        with tempfile.TemporaryDirectory() as folder:
+            path = Path(folder) / "paths.json"
+            with (
+                patch("route.subprocess.run", wraps=subprocess.run) as invoke,
+                self.assertRaises(subprocess.CalledProcessError),
+            ):
+                construct(30, 30, 8, path)
+            self.assertEqual(invoke.call_count, 1)
+            self.assertFalse(path.exists())
+
+    def test_known_gap_is_retained_without_a_false_optimality_claim(self):
+        result = construct(98, 51, 20)
+        self.assertEqual(result["total_length"], 1399338)
+        self.assertFalse(result["optimality_certified"])
+        self.assertFalse(result["improved"])
+        self.assertFalse(result["polished"])
+        self.assertEqual(result["residual_work"], 0)
 
 
 if __name__ == "__main__":

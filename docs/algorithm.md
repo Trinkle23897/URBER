@@ -1,4 +1,4 @@
-# Routing model and geometric replay
+# Routing model and construction methods
 
 There are `N × M` terminals at `(i*d, j*d)`, for `1 <= i <= N` and `1 <= j <= M`. The rectangular boundary is at `x=0`, `x=(N+1)d`, `y=0`, and `y=(M+1)d`.
 
@@ -6,11 +6,15 @@ Every terminal needs one axis-aligned grid path to a distinct boundary vertex. P
 
 The comparison problem permits nonmonotone paths. The pure constructors emit monotone paths; matching a valid lower bound still proves optimality against the larger feasible set.
 
-## Runtime dispatch
+## Current runtime dispatch
 
 For `2*d >= min(N,M)`, an explicit fan construction attains a proved optimum. It is described in [fan-proof.md](fan-proof.md).
 
-Otherwise, the router retains the previous pure-rule portfolio and tries 12 fixed configurations of geometric replay. Each configuration specifies an orientation, odd-axis ownership phase, boundary-priority rule, replay depth, and preferred equal-length action. `profiles.json` contains only those parameters. It does not map dimensions to paths or optimal lengths.
+Otherwise, `route.py` invokes the original `build/urber` rules once with the supplied `(N,M,d)`, without `--improved` or `--polish`. It preserves the input orientation. Failure is returned directly: there is no fallback, pitch adjustment, reconstruction, or parameter search. The fixed rule order gives repeatable path geometry, but does not prove low-pitch optimality.
+
+## Legacy replay dispatch
+
+The archived `python -m research.replay` entry point uses the same high-pitch fan. Otherwise, it retains the previous pure-rule portfolio and tries 12 fixed configurations of geometric replay. Each configuration specifies an orientation, odd-axis ownership phase, boundary-priority rule, replay depth, and preferred equal-length action. `profiles.json` contains only those parameters. It does not map dimensions to paths or optimal lengths.
 
 ## Guided replay
 

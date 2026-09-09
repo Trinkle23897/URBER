@@ -1,13 +1,13 @@
-"""Audit recorded witnesses or run the public portfolio on the complete domain."""
+"""Audit recorded witnesses or run the legacy replay portfolio on the complete domain."""
 
 import argparse
-from concurrent.futures import ThreadPoolExecutor, as_completed
 import csv
 import hashlib
 import json
-from pathlib import Path
 import subprocess
 import sys
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -28,7 +28,7 @@ def audit(row, mode, check_bounds=False):
     if mode == "paper":
         command = [str(ROOT / "build/urber"), *dimensions]
     elif mode == "portfolio":
-        command = [sys.executable, str(ROOT / "route.py"), *dimensions]
+        command = [sys.executable, str(ROOT / "research/replay.py"), *dimensions]
     elif row["mode"] == "fan":
         command = [str(ROOT / "build/pure_fan"), *dimensions]
     else:
@@ -38,7 +38,7 @@ def audit(row, mode, check_bounds=False):
         else:
             for key in ("candidate", "phase", "alpha", "tie"):
                 command += ["--" + key, str(row[key])]
-    process = subprocess.run(command, capture_output=True, text=True)
+    process = subprocess.run(command, capture_output=True, text=True, check=False)
     if process.returncode and not (
         mode == "paper" and process.returncode == 1 and process.stdout
     ):
@@ -99,7 +99,7 @@ def main():
     )
     output.parent.mkdir(parents=True, exist_ok=True)
     inputs = [
-        "route.py",
+        "research/replay.py",
         "profiles.json",
         "build/pure_router",
         "build/pure_fan",

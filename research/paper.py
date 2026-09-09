@@ -4,11 +4,11 @@ import argparse
 import csv
 import hashlib
 import json
-from pathlib import Path
 import platform
 import subprocess
 import sys
 import time
+from pathlib import Path
 
 from research.experiment import ROOT, optimal, run
 
@@ -35,9 +35,10 @@ def measure(case, table, method, paths_dir=None):
         path = paths_dir / f"{method}-{n}x{m}-d{d}.json"
     if method == "paper":
         result = run(n, m, d, path=path)
-    elif method == "geometric":
+    elif method in ("geometric", "single_pass"):
+        entrypoint = "research/replay.py" if method == "geometric" else "route.py"
         process = subprocess.run(
-            [sys.executable, str(ROOT / "route.py"), str(n), str(m), str(d)]
+            [sys.executable, str(ROOT / entrypoint), str(n), str(m), str(d)]
             + ([str(path)] if path else []),
             capture_output=True,
             text=True,
@@ -76,8 +77,9 @@ def main():
     parser.add_argument(
         "--methods",
         nargs="+",
-        choices=("paper", "geometric", "mcf"),
-        default=["paper", "geometric"],
+        choices=("paper", "single_pass", "geometric", "mcf"),
+        default=["paper", "single_pass"],
+        help="geometric selects the legacy replay portfolio",
     )
     parser.add_argument("--case", nargs=2, type=int, metavar=("N", "M"))
     parser.add_argument("--output", type=Path)
@@ -100,14 +102,19 @@ def main():
     files = [
         "research/paper.py",
         "research/experiment.py",
-        "route.py",
-        "profiles.json",
         f"benchmarks/paper/table_{args.table}.csv",
     ]
     if "paper" in methods:
         files += ["build/urber"]
+    if "single_pass" in methods:
+        files += ["route.py", "build/urber", "build/pure_fan"]
     if "geometric" in methods:
-        files += ["build/pure_router", "build/pure_fan"]
+        files += [
+            "research/replay.py",
+            "profiles.json",
+            "build/pure_router",
+            "build/pure_fan",
+        ]
     signature = hashlib.sha256(
         json.dumps(
             {

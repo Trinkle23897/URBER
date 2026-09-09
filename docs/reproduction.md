@@ -1,5 +1,7 @@
 # Reproduce the paper comparisons and figures
 
+`route.py` is now the single-construction default. The archived figures, `geometric` table rows, thin-rectangle audits, and full-square sweep use the legacy replay method (`python -m research.replay`). Those results must not be attributed to the current default.
+
 ## Published data and measurement boundaries
 
 The values in `benchmarks/paper/table_ii.csv` and `table_iii.csv` were transcribed from page 11 of the [paper](https://trinkle23897.github.io/pdf/URBER.pdf#page=11). The source metadata includes the PDF hash, DOI, reported hardware, and the separate 30–100 sweep described on page 12. No paper screenshot is needed to rebuild the charts.
@@ -23,8 +25,11 @@ mkdir -p results/routes
 # Original-rule reconstruction.
 ./build/urber 30 30 9 results/routes/paper-30x30-d9.json
 
-# Improved geometric construction; no online flow solver.
-.venv/bin/python route.py 30 30 9 results/routes/geometric-30x30-d9.json
+# Current default: one construction, with no retries or online solver.
+.venv/bin/python route.py 30 30 9 results/routes/single-pass-30x30-d9.json
+
+# Legacy replay construction used in the archived figures.
+.venv/bin/python -m research.replay 30 30 9 results/routes/geometric-30x30-d9.json
 ```
 
 The MCF implementation uses unit vertex capacities and directed unit-cost grid moves, with source supplies at terminals and distinct boundary sinks. Exported paths are extracted from positive flow and checked for intersections, intermediate boundary visits, other terminals, and agreement with the optimal objective.
@@ -32,8 +37,10 @@ The MCF implementation uses unit vertex capacities and directed unit-cost grid m
 ## Complete published tables
 
 ```sh
+.venv/bin/python -m research.paper --table ii --methods paper single_pass \
+  --output results/table-ii-single-pass.jsonl
 .venv/bin/python -m research.paper --table ii --methods paper geometric \
-  --output results/table-ii.jsonl
+  --output results/table-ii-legacy.jsonl
 .venv/bin/python -m research.paper --table ii --methods mcf \
   --output results/table-ii-mcf.jsonl
 .venv/bin/python -m research.paper --table iii --methods paper \
@@ -74,7 +81,7 @@ To reconstruct the original paper method on the completed thin-rectangle dataset
   --paper-results results/paper-thin-400.jsonl
 ```
 
-To run **all 160,000 ordered pairs**, use the full-square runner:
+To reproduce the **legacy replay experiment on all 160,000 ordered pairs**, use the full-square runner:
 
 ```sh
 .venv/bin/python -m research.full_sweep --max-n 400 --workers 32 \

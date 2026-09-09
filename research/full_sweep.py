@@ -1,7 +1,7 @@
-"""Parallel, resumable comparison on every ordered pair 1 <= N,M <= max_n.
+"""Archived replay comparison on every ordered pair 1 <= N,M <= max_n.
 
 Bounds and early stopping are offline evaluation only. Every accepted witness
-is a candidate of the unmodified runtime portfolio and is geometrically checked.
+is a candidate of the legacy replay portfolio and is geometrically checked.
 """
 
 import argparse

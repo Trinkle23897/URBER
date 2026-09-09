@@ -1,0 +1,22 @@
+{
+  "method": "single_pass",
+  "measured_at": "2026-09-09T20:24:18.501221+00:00",
+  "python": "3.12.13 (main, May  8 2026, 05:12:16) [GCC 13.3.0]",
+  "platform": "Linux-6.14.0-1017-azure-x86_64-with-glibc2.39",
+  "compiler": "g++ (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0",
+  "command": "python -m research.paper --table ii --methods single_pass",
+  "files": {
+    "route.py": "0bc91c5f1f572300ad399d74950088fd99f386003b1e4da9d0785788a65badfd",
+    "research/paper.py": "c63d3cb6fbfe95efcc2ebf52acee713482c852342c3f35ab63bbde0d55df1375",
+    "research/experiment.py": "00b2dfb595a3e7e4571d3ef7a1e14057c9cfbff490789de7f7bb0b3240491b52",
+    "src/urber.cpp": "1927147832e5c48366db01e11b7c2f9dccbf1e0ea229eac57e559ee612c2b593",
+    "src/pure/pure_fan.cpp": "5e290f052220eba2ba80adf612f01d7680ec4e65d4810423933a6c82446b51e1",
+    "src/routing_types.hpp": "f05afad0c8d148ea46346f1b11c630bdd109a72f487e6dd6eb90f8145ef83ca5",
+    "src/verify.hpp": "a3a21fcaf4f29ec31f3a2fcea844d02eebb9aee3300ea3d3d7bac323009d1477",
+    "src/residual_repair.hpp": "eed65e28d688e9c91a3961fcd85e84358d38d983b24ff299ca820c455807d2a0",
+    "build/urber": "299d1329b3ac0d5bbe3bf5b2d5db67f5ca2988aedfd692452b45cd1956afe2cd",
+    "build/pure_fan": "33310713d17ab0aeaa99e0b535712a297f9045d7b6dbce42fa823714ae8fe654"
+  },
+  "observations_sha256": "953a3c3b429640a6d57a62f9cd86db72823bedb7aad066a21cd2c97b7425f9dc",
+  "timing": "Wall seconds include subprocess startup and independent geometry verification; do not compare against the paper CPU timings as a speedup."
+}

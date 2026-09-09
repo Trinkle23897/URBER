@@ -1,5 +1,7 @@
 # Benchmark methodology and provenance
 
+These archived experiments evaluate the **legacy replay portfolio** (`python -m research.replay`), not the current single-construction `route.py`. Its published 99.75625% rate must not be attributed to the current default.
+
 ## Complete square: 1 <= N,M <= 400
 
 The September 9, 2026 experiment covers **all 160,000 ordered pairs**. Each orientation was actually constructed; no rows were filled by copying the transposed result. The objective is minimum total wire length `L` at the recorded fixed `(N,M,d)`.
@@ -55,7 +57,7 @@ This stress-test domain differs from the paper's `30 <= N,M <= 100` experiment. 
 
 Each row records dimensions, fixed pitch, final length, and the independent lower bound. The legacy `baseline_length` column preserves the intermediate portfolio for traceability; it is not the paper-method baseline. The latter is recorded separately in `paper_method_thin_400.csv`. `mode` identifies `fan`, `baseline`, `guided`, or `deep`. For replay rows, `candidate`, `phase`, `alpha`, and `tie` identify a successful configuration, and the final three columns record its work counters. Unused fields are empty.
 
-`candidate` bit 0 selects port priority and bit 1 transposes the construction orientation. `phase` controls ownership of odd central axes. These per-case columns are **offline witness metadata**. The runtime entry point reads only the dimension-independent configurations in `profiles.json`.
+`candidate` bit 0 selects port priority and bit 1 transposes the construction orientation. `phase` controls ownership of odd central axes. These per-case columns are **offline witness metadata**. The legacy replay entry point reads only the dimension-independent configurations in `profiles.json`.
 
 The original offline sweep stopped testing a case once a candidate matched the lower bound. This is sound for evaluating the full portfolio: it contains that same verified candidate, and no legal candidate can beat a valid lower bound. The runtime does not have this stopping oracle and evaluates its fixed portfolio.
 
