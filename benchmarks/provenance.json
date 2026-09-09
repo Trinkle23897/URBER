@@ -1,0 +1,11 @@
+{
+  "description": "Historical source hashes before repository packaging; the algorithm was not changed during packaging.",
+  "files": {
+    "linear_research/pure_router.cpp": "bdcf0cde61ac71073403679feef4937ebfd0303b3931473ca0b21c435e944057",
+    "linear_research/pure_fan.cpp": "5e290f052220eba2ba80adf612f01d7680ec4e65d4810423933a6c82446b51e1",
+    "urber.cpp": "1927147832e5c48366db01e11b7c2f9dccbf1e0ea229eac57e559ee612c2b593",
+    "verify.hpp": "a3a21fcaf4f29ec31f3a2fcea844d02eebb9aee3300ea3d3d7bac323009d1477",
+    "residual_repair.hpp": "eed65e28d688e9c91a3961fcd85e84358d38d983b24ff299ca820c455807d2a0",
+    "results/pure_guided_400.jsonl": "99b0e70e19cd262d78be3cd3c92c7a49c1a2f8c5cf89e6443d2dfc6f631d9fd3"
+  }
+}

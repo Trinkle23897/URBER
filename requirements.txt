@@ -1,0 +1,4 @@
+# Optional: offline oracles, tests, and plots. Routing needs only Python's stdlib.
+ortools==9.15.6755
+matplotlib==3.11.1
+numpy>=2.0.2,<3

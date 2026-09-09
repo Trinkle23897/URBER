@@ -1,0 +1,10 @@
+/build/
+/.venv/
+/results/
+__pycache__/
+*.py[cod]
+.DS_Store
+.ruff_cache/
+.pytest_cache/
+/routes.json
+/paper-routes.json

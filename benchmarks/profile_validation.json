@@ -1,0 +1,338 @@
+[
+  {
+    "N": 21,
+    "M": 106,
+    "d": 10,
+    "config": {
+      "mode": "guided",
+      "tie": 1,
+      "alpha": 110,
+      "candidate": 0,
+      "phase": 3
+    },
+    "total_length": 142212,
+    "trace_counters_match": true
+  },
+  {
+    "N": 106,
+    "M": 21,
+    "d": 10,
+    "config": {
+      "mode": "guided",
+      "tie": 1,
+      "alpha": 110,
+      "candidate": 0,
+      "phase": 3
+    },
+    "total_length": 142212,
+    "trace_counters_match": true
+  },
+  {
+    "N": 105,
+    "M": 21,
+    "d": 10,
+    "config": {
+      "mode": "guided",
+      "tie": 1,
+      "alpha": 110,
+      "candidate": 0,
+      "phase": 1
+    },
+    "total_length": 140533,
+    "trace_counters_match": true
+  },
+  {
+    "N": 21,
+    "M": 105,
+    "d": 10,
+    "config": {
+      "mode": "guided",
+      "tie": 1,
+      "alpha": 110,
+      "candidate": 0,
+      "phase": 1
+    },
+    "total_length": 140533,
+    "trace_counters_match": true
+  },
+  {
+    "N": 192,
+    "M": 38,
+    "d": 18,
+    "config": {
+      "mode": "guided",
+      "tie": 1,
+      "alpha": 110,
+      "candidate": 2,
+      "phase": 3
+    },
+    "total_length": 1485148,
+    "trace_counters_match": true
+  },
+  {
+    "N": 38,
+    "M": 192,
+    "d": 18,
+    "config": {
+      "mode": "guided",
+      "tie": 1,
+      "alpha": 110,
+      "candidate": 2,
+      "phase": 3
+    },
+    "total_length": 1485148,
+    "trace_counters_match": true
+  },
+  {
+    "N": 38,
+    "M": 208,
+    "d": 18,
+    "config": {
+      "mode": "guided",
+      "tie": 1,
+      "alpha": 110,
+      "candidate": 1,
+      "phase": 3
+    },
+    "total_length": 1646988,
+    "trace_counters_match": true
+  },
+  {
+    "N": 208,
+    "M": 38,
+    "d": 18,
+    "config": {
+      "mode": "guided",
+      "tie": 1,
+      "alpha": 110,
+      "candidate": 1,
+      "phase": 3
+    },
+    "total_length": 1646988,
+    "trace_counters_match": true
+  },
+  {
+    "N": 231,
+    "M": 42,
+    "d": 20,
+    "config": {
+      "mode": "guided",
+      "tie": 1,
+      "alpha": 110,
+      "candidate": 3,
+      "phase": 3
+    },
+    "total_length": 2428320,
+    "trace_counters_match": true
+  },
+  {
+    "N": 42,
+    "M": 231,
+    "d": 20,
+    "config": {
+      "mode": "guided",
+      "tie": 1,
+      "alpha": 110,
+      "candidate": 3,
+      "phase": 3
+    },
+    "total_length": 2428320,
+    "trace_counters_match": true
+  },
+  {
+    "N": 42,
+    "M": 229,
+    "d": 20,
+    "config": {
+      "mode": "deep",
+      "tie": 1,
+      "alpha": 110,
+      "candidate": 0,
+      "phase": 3
+    },
+    "total_length": 2401474,
+    "trace_counters_match": true
+  },
+  {
+    "N": 229,
+    "M": 42,
+    "d": 20,
+    "config": {
+      "mode": "deep",
+      "tie": 1,
+      "alpha": 110,
+      "candidate": 0,
+      "phase": 3
+    },
+    "total_length": 2401474,
+    "trace_counters_match": true
+  },
+  {
+    "N": 245,
+    "M": 49,
+    "d": 23,
+    "config": {
+      "mode": "guided",
+      "tie": 1,
+      "alpha": 110,
+      "candidate": 1,
+      "phase": 1
+    },
+    "total_length": 4094032,
+    "trace_counters_match": true
+  },
+  {
+    "N": 49,
+    "M": 245,
+    "d": 23,
+    "config": {
+      "mode": "guided",
+      "tie": 1,
+      "alpha": 110,
+      "candidate": 1,
+      "phase": 1
+    },
+    "total_length": 4094032,
+    "trace_counters_match": true
+  },
+  {
+    "N": 269,
+    "M": 53,
+    "d": 25,
+    "config": {
+      "mode": "guided",
+      "tie": 1,
+      "alpha": 110,
+      "candidate": 3,
+      "phase": 2
+    },
+    "total_length": 5635451,
+    "trace_counters_match": true
+  },
+  {
+    "N": 53,
+    "M": 269,
+    "d": 25,
+    "config": {
+      "mode": "guided",
+      "tie": 1,
+      "alpha": 110,
+      "candidate": 3,
+      "phase": 2
+    },
+    "total_length": 5635451,
+    "trace_counters_match": true
+  },
+  {
+    "N": 55,
+    "M": 292,
+    "d": 26,
+    "config": {
+      "mode": "deep",
+      "tie": 1,
+      "alpha": 110,
+      "candidate": 0,
+      "phase": 1
+    },
+    "total_length": 6886206,
+    "trace_counters_match": true
+  },
+  {
+    "N": 292,
+    "M": 55,
+    "d": 26,
+    "config": {
+      "mode": "deep",
+      "tie": 1,
+      "alpha": 110,
+      "candidate": 0,
+      "phase": 1
+    },
+    "total_length": 6886206,
+    "trace_counters_match": true
+  },
+  {
+    "N": 308,
+    "M": 55,
+    "d": 26,
+    "config": {
+      "mode": "guided",
+      "tie": 2,
+      "alpha": 110,
+      "candidate": 3,
+      "phase": 2
+    },
+    "total_length": 7383914,
+    "trace_counters_match": true
+  },
+  {
+    "N": 55,
+    "M": 308,
+    "d": 26,
+    "config": {
+      "mode": "guided",
+      "tie": 2,
+      "alpha": 110,
+      "candidate": 3,
+      "phase": 2
+    },
+    "total_length": 7383914,
+    "trace_counters_match": true
+  },
+  {
+    "N": 45,
+    "M": 373,
+    "d": 22,
+    "config": {
+      "mode": "deep",
+      "tie": 1,
+      "alpha": 110,
+      "candidate": 1,
+      "phase": 1
+    },
+    "total_length": 4818462,
+    "trace_counters_match": true
+  },
+  {
+    "N": 373,
+    "M": 45,
+    "d": 22,
+    "config": {
+      "mode": "deep",
+      "tie": 1,
+      "alpha": 110,
+      "candidate": 1,
+      "phase": 1
+    },
+    "total_length": 4818462,
+    "trace_counters_match": true
+  },
+  {
+    "N": 383,
+    "M": 63,
+    "d": 30,
+    "config": {
+      "mode": "deep",
+      "tie": 1,
+      "alpha": 110,
+      "candidate": 1,
+      "phase": 3
+    },
+    "total_length": 13795468,
+    "trace_counters_match": true
+  },
+  {
+    "N": 63,
+    "M": 383,
+    "d": 30,
+    "config": {
+      "mode": "deep",
+      "tie": 1,
+      "alpha": 110,
+      "candidate": 1,
+      "phase": 3
+    },
+    "total_length": 13795468,
+    "trace_counters_match": true
+  }
+]
