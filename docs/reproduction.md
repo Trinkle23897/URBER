@@ -108,8 +108,28 @@ After collecting both shard files:
   --max-n 400 --output results/optimality-full400.png
 ```
 
-The full-square plot requires complete, nonoverlapping coverage by default. Use `--allow-incomplete` only for an explicitly labeled progress plot. The completed thin-rectangle map is not presented as completion of this larger run.
+The full-square plot requires complete, nonoverlapping coverage by default. Use `--allow-incomplete` only for an explicitly labeled progress plot. The checked-in full-square map covers all 160,000 cases. The earlier thin-rectangle figure covers only its stated subset.
 
+
+## Reproduce the published full-square artifacts
+
+The completed September 9, 2026 run is stored under `benchmarks/full400/`. Redraw its map without rerunning routing:
+
+```sh
+.venv/bin/python -m research.plot_full_sweep benchmarks/full400/results.jsonl.gz \
+  --max-n 400 --output results/optimality-full400.png
+```
+
+To publish a new complete sweep, first merge its original and helper snapshots. The following example uses two disjoint shards; include all helper inputs when applicable:
+
+```sh
+.venv/bin/python -m research.merge_sweep results/full-400-shard0 results/full-400-shard1 \
+  --max-n 400 --output results/merged-full400
+.venv/bin/python -m research.export_sweep results/merged-full400 \
+  --output results/published-full400 --source-commit "$(git rev-parse HEAD)"
+```
+
+The exporter requires complete unique coverage and verified witnesses, checks lower-bound classifications, and writes CSV, losslessly compressed full observations, aggregate results, and provenance with input/artifact hashes. Keep the raw snapshots for provenance audits. `seconds` within a geometric observation measures its **selected native candidate**, not all candidates, bound computation, or end-to-end portfolio time. These files are a solution-quality benchmark, not a portable runtime comparison. Difficult replay candidates can take hours even when the selected routing was a fast baseline.
 
 ## Rebalance pending cases
 

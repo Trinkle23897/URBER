@@ -67,15 +67,39 @@ The figures below show actual exported paths. Colors identify the exit side; dot
 
 ![MCF, paper method, and geometric replay on 72 by 13 terminals](assets/routing-rectangle.png)
 
-## Optimality map
+## Complete 1–400 optimality map
 
-This additional stress test compares the **paper-method reconstruction directly with the improved geometric method**, using identical recorded pitches on every integer pair in `1 <= N <= 400, 1 <= M <= floor(N/5)`. It is a different domain from the paper's Figure 17; its percentages must not be compared with the paper's 91.9% as if the test sets were identical.
+Every **ordered pair `1 <= N,M <= 400`** has now been constructed and evaluated: **160,000 / 160,000 cases**, including both orientations. Both methods use the same fixed pitch for each case.
 
-![Paper-method reconstruction versus improved geometric routing: is_optimal map](assets/optimality.png)
+| Method | Proven optimal | Rate | Proven nonoptimal | Unknown |
+|---|---:|---:|---:|---:|
+| Paper-method reconstruction | 131,592 | 82.245% | 28,063 | 345 |
+| Improved geometric method | 159,610 | **99.75625%** | 0 | 390 |
 
-Green means a geometrically verified routing reaches an independent lower bound. Red means a shorter verified routing exists. Yellow means the construction did not return a verified routing. The improved method reaches the bound on all **15,880** points in this completed thin-rectangle test. [Data and methodology](docs/benchmark.md)
+![Complete is_optimal(N,M) map for all ordered pairs from 1 to 400](assets/optimality-full400.png)
 
-A separate parallel sweep of **all 160,000 ordered pairs `1 <= N,M <= 400`** is supported by `research.full_sweep`. Its results are not substituted for the completed map above before the full run finishes.
+Green means a verified routing attains an independent lower bound. Red means a shorter verified routing exists. Yellow means **optimality is unknown**, not that routing failed. Every construction in this run passed the geometry verifier. The improved method is shorter in **28,063** cases and equal in the other **131,937**; it is never longer in this dataset. Its largest remaining lower-bound gap is **68**, at `13 x 24` and `24 x 13`, `d=6`. These gaps do not prove nonoptimality.
+
+For comparison with the paper's Figure 17, the completed run also contains every pair in `30 <= N,M <= 100`:
+
+| Method / experiment | Proven optimal in the 5,041-case dimension range |
+|---|---:|
+| Original paper, reported result | Approximately 91.9% |
+| Paper-method reconstruction, this run | 4,621 / 5,041 = 91.67% |
+| Improved geometric method, this run | 4,997 / 5,041 = **99.13%** |
+
+The last two rows use identical recorded pitches. They share the paper's dimension range, but do **not** reproduce its complete pitch selection: this run retains existing benchmark pitches and otherwise uses the reconstructed paper method's bisection result. The paper's published result and the reconstruction are therefore reported separately. The improved method has 44 unknown cases in this range, each with a lower-bound gap of at most 4.
+
+[Per-case CSV](benchmarks/full400/results.csv) · [Compressed full observations](benchmarks/full400/results.jsonl.gz) · [Summary](benchmarks/full400/summary.json) · [Provenance and hashes](benchmarks/full400/provenance.json) · [Methodology](docs/benchmark.md)
+
+The earlier thin-rectangle test (`1 <= N <= 400`, `1 <= M <= floor(N/5)`) remains available below. Its **15,880 / 15,880** improved-method optima are reproduced inside the full-square run; its 100% rate applies only to that subset.
+
+<details>
+<summary>Earlier thin-rectangle map</summary>
+
+![Thin-rectangle optimality map](assets/optimality.png)
+
+</details>
 
 ## Build
 

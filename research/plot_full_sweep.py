@@ -1,6 +1,7 @@
 """Plot complete full-square sweep shards, or explicitly labeled progress."""
 
 import argparse
+import gzip
 import json
 import os
 from pathlib import Path
@@ -13,9 +14,9 @@ import matplotlib
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+import numpy as np
 from matplotlib.colors import ListedColormap
 from matplotlib.patches import Patch
-import numpy as np
 
 
 def main():
@@ -27,7 +28,12 @@ def main():
     args = parser.parse_args()
     rows = {}
     for path in args.inputs:
-        for line in path.read_text().splitlines():
+        text = (
+            gzip.decompress(path.read_bytes()).decode()
+            if path.suffix == ".gz"
+            else path.read_text()
+        )
+        for line in text.splitlines():
             row = json.loads(line)
             key = row["N"], row["M"]
             if key in rows or not all(1 <= x <= args.max_n for x in key):
@@ -89,6 +95,11 @@ def main():
     args.output.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(args.output, dpi=170)
     plt.close(fig)
+    if args.output.suffix == ".svg":
+        args.output.write_text(
+            "\n".join(line.rstrip() for line in args.output.read_text().splitlines())
+            + "\n"
+        )
 
 
 if __name__ == "__main__":
