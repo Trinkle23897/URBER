@@ -254,7 +254,7 @@ def main():
                 shard=args.shard,
                 counts=counts,
                 errors=len(failures),
-                active=dict(active),
+                active=active.copy(),
                 elapsed_seconds=time.monotonic() - started,
                 updated_utc=datetime.now(timezone.utc).isoformat(),
             )
