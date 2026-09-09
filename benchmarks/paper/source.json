@@ -1,0 +1,40 @@
+{
+  "paper_title": "URBER: Ultrafast Rule-Based Escape Routing Method for Large-Scale Sample Delivery Biochips",
+  "doi": "10.1109/TCAD.2018.2883908",
+  "pdf_url": "https://trinkle23897.github.io/pdf/URBER.pdf",
+  "pdf_sha256": "cc231353d22acf81bd85480cc199edea0401533ba483623441be744682841e70",
+  "table_source_page": 11,
+  "sweep_source_page": 12,
+  "published_hardware": "Intel Xeon E5620 2.40 GHz; Linux; 16 cores; 40 GB RAM; one thread used",
+  "sweep": {
+    "min_N": 30,
+    "max_N": 100,
+    "min_M": 30,
+    "max_M": 100,
+    "cases": 5041,
+    "reported_optimal_percent_approx": 91.9,
+    "reported_suboptimal_cases_approx": 408,
+    "reported_max_length_error": 20,
+    "reported_max_length_error_case": [
+      92,
+      34,
+      15
+    ],
+    "reported_error_percent_upper_bound": 0.005,
+    "reported_always_optimal_aspect_ratio_open_interval": [
+      0.75,
+      1.3333333333333333
+    ]
+  },
+  "table_ii_reported_mean_speedups": {
+    "vs_mcf": 122000,
+    "vs_maxf": 1830,
+    "vs_fr41": 348000
+  },
+  "notes": [
+    "CSV values transcribed from the paper, not measured by this repository.",
+    "The paper uses fixed listed pitches for Tables II and III; bisection is not included in those measurements.",
+    "FastRoute 4.1 used two layers in the paper; MCF and MaxF used the fine-grid network formulation.",
+    "memory_M preserves the published column label; no unit conversion is inferred."
+  ]
+}

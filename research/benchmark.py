@@ -25,7 +25,9 @@ def load_cases():
 
 def audit(row, mode, check_bounds=False):
     dimensions = [str(row[key]) for key in ("N", "M", "d")]
-    if mode == "portfolio":
+    if mode == "paper":
+        command = [str(ROOT / "build/urber"), *dimensions]
+    elif mode == "portfolio":
         command = [sys.executable, str(ROOT / "route.py"), *dimensions]
     elif row["mode"] == "fan":
         command = [str(ROOT / "build/pure_fan"), *dimensions]
@@ -37,12 +39,15 @@ def audit(row, mode, check_bounds=False):
             for key in ("candidate", "phase", "alpha", "tie"):
                 command += ["--" + key, str(row[key])]
     process = subprocess.run(command, capture_output=True, text=True)
-    if process.returncode:
+    if process.returncode and not (
+        mode == "paper" and process.returncode == 1 and process.stdout
+    ):
         raise RuntimeError(f"{dimensions}: {process.stderr.strip()}")
     result = json.loads(process.stdout)
-    if not result["verified"] or result.get("residual_work", 0):
+    verified = result.get("verified", False)
+    if (not verified and mode != "paper") or result.get("residual_work", 0):
         raise RuntimeError(f"Unverified or residual-based result: {dimensions}")
-    if result["total_length"] != row["total_length"]:
+    if mode != "paper" and result["total_length"] != row["total_length"]:
         raise RuntimeError(f"Length mismatch: {dimensions}: {result['total_length']}")
     if mode == "witness" and row["mode"] in ("guided", "deep"):
         for key in ("weighted_grid_visits", "replay_attempts", "accepted_replays"):
@@ -55,7 +60,9 @@ def audit(row, mode, check_bounds=False):
         recomputed = assignment_lower_bound(row["N"], row["M"], row["d"])
         if recomputed != bound:
             raise RuntimeError(f"Lower-bound mismatch: {dimensions}")
-    if result["total_length"] != bound:
+    if verified and result["total_length"] < bound:
+        raise RuntimeError(f"Verified result below the lower bound: {dimensions}")
+    if mode != "paper" and result["total_length"] != bound:
         raise RuntimeError(f"Optimality gap: {dimensions}")
     return {
         "N": row["N"],
@@ -64,14 +71,16 @@ def audit(row, mode, check_bounds=False):
         "audit_mode": mode,
         "lower_bound": bound,
         "bound_recomputed": check_bounds,
-        "optimality_verified_offline": True,
+        "optimality_verified_offline": verified and result["total_length"] == bound,
         "constructor": result,
     }
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--mode", choices=("portfolio", "witness"), default="portfolio")
+    parser.add_argument(
+        "--mode", choices=("portfolio", "witness", "paper"), default="portfolio"
+    )
     parser.add_argument("--max-n", type=int, default=400)
     parser.add_argument("--workers", type=int, default=1)
     parser.add_argument("--check-bounds", action="store_true")
@@ -94,6 +103,7 @@ def main():
         "profiles.json",
         "build/pure_router",
         "build/pure_fan",
+        "build/urber",
         "benchmarks/thin_400.csv",
         "research/benchmark.py",
         "research/bounds.py",
@@ -115,7 +125,9 @@ def main():
                 saved.get("run_signature") != signature
                 or key not in expected
                 or key in done
-                or not saved.get("optimality_verified_offline")
+                or not (
+                    saved.get("optimality_verified_offline") or args.mode == "paper"
+                )
             ):
                 parser.error(
                     "checkpoint does not match this audit; use a new --output path"
@@ -136,8 +148,8 @@ def main():
             stream.write(json.dumps(result) + "\n")
             stream.flush()
             if completed % 100 == 0 or completed == len(rows):
-                print(f"Verified {completed}/{len(rows)}", flush=True)
-    print(f"Verified {len(rows)} cases; saved {output}")
+                print(f"Evaluated {completed}/{len(rows)}", flush=True)
+    print(f"Evaluated {len(rows)} cases; saved {output}")
 
 
 if __name__ == "__main__":

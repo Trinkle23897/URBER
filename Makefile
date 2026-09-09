@@ -26,7 +26,10 @@ test: all build/test_verify
 	$(PYTHON) -m unittest discover -s tests -v
 
 plot:
+	$(PYTHON) -m research.plot_paper
 	$(PYTHON) -m research.plot_benchmark
+	$(PYTHON) -m research.plot_routes benchmarks/paper/routes/mcf-30x30-d9.json benchmarks/paper/routes/paper-30x30-d9.json benchmarks/paper/routes/geometric-30x30-d9.json --labels "Minimum-cost flow" "Paper method" "Geometric replay" --output assets/routing-square.png
+	$(PYTHON) -m research.plot_routes benchmarks/paper/routes/mcf-72x13-d6.json benchmarks/paper/routes/paper-72x13-d6.json benchmarks/paper/routes/geometric-72x13-d6.json --labels "Minimum-cost flow" "Paper method" "Geometric replay" --output assets/routing-rectangle.png
 
 clean:
 	rm -rf build

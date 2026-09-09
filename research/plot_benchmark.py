@@ -1,6 +1,10 @@
 """Render the complete recorded optimality comparison with English labels."""
 
 import os
+import argparse
+import csv
+import json
+from pathlib import Path
 
 from research.benchmark import ROOT, load_cases
 
@@ -16,6 +20,13 @@ import numpy as np
 
 
 def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--paper-results",
+        type=Path,
+        default=ROOT / "benchmarks/paper_method_thin_400.csv",
+    )
+    args = parser.parse_args()
     plt.rcParams["svg.hashsalt"] = "urber-optimality"
     rows = load_cases()
     domain = {(n, m) for n in range(1, 401) for m in range(1, n // 5 + 1)}
@@ -23,17 +34,43 @@ def main():
         raise ValueError("The plot requires the full 15,880-case domain")
     grids = [np.zeros((400, 80), dtype=np.uint8) for _ in range(2)]
     counts = [0, 0]
+    if args.paper_results.suffix == ".jsonl":
+        paper = {
+            (r["N"], r["M"]): r["constructor"]
+            for r in (
+                json.loads(line) for line in args.paper_results.read_text().splitlines()
+            )
+        }
+    else:
+        with args.paper_results.open() as stream:
+            paper = {
+                (int(r["N"]), int(r["M"])): dict(
+                    d=int(r["d"]),
+                    verified=r["verified"] == "1",
+                    total_length=int(r["total_length"]) if r["total_length"] else None,
+                )
+                for r in csv.DictReader(stream)
+            }
+    if set(paper) != domain:
+        raise ValueError("The paper-method comparison requires the complete domain")
+    failed = 0
     for row in rows:
-        # The shorter final routing is a feasible witness against the baseline.
+        reference = paper[row["N"], row["M"]]
+        if reference["d"] != row["d"]:
+            raise ValueError("Cannot compare different pitches")
         if row["total_length"] != row["lower_bound"]:
             raise ValueError("An uncertified final result cannot be colored optimal")
-        for i, key in enumerate(("baseline_length", "total_length")):
-            optimal = row[key] == row["lower_bound"]
-            if row[key] < row["lower_bound"]:
+        for i, length in enumerate((reference["total_length"], row["total_length"])):
+            if i == 0 and not reference["verified"]:
+                grids[i][row["N"] - 1, row["M"] - 1] = 3
+                failed += 1
+                continue
+            optimal = length == row["lower_bound"]
+            if length < row["lower_bound"]:
                 raise ValueError("A recorded length is below its lower bound")
             grids[i][row["N"] - 1, row["M"] - 1] = 2 if optimal else 1
             counts[i] += optimal
-    colors = ["#e9edeb", "#bd6d62", "#70bda8"]
+    colors = ["#e9edeb", "#bd6d62", "#70bda8", "#edcb8b"]
     fig, axes = plt.subplots(1, 2, figsize=(14, 8))
     fig.patch.set_facecolor("#fafbf9")
     fig.subplots_adjust(left=0.07, right=0.98, bottom=0.16, top=0.78, wspace=0.18)
@@ -46,9 +83,9 @@ def main():
             interpolation="nearest",
             cmap=ListedColormap(colors),
             vmin=0,
-            vmax=2,
+            vmax=3,
         )
-        title = ("Previous pure rules", "Guided geometric replay")[i]
+        title = ("Paper-method reconstruction", "Improved geometric replay")[i]
         ax.set(
             title=f"{title}\n{counts[i]:,} / {len(rows):,} optimal ({100 * counts[i] / len(rows):.2f}%)",
             xlabel="M (short side)",
@@ -73,9 +110,10 @@ def main():
         handles=[
             Patch(facecolor=colors[2], label="Proved optimal"),
             Patch(facecolor=colors[1], label="Proved nonoptimal"),
+            Patch(facecolor=colors[3], label="No verified routing"),
             Patch(facecolor=colors[0], label="Outside this benchmark"),
         ],
-        ncol=3,
+        ncol=4,
         frameon=False,
         loc="lower center",
         bbox_to_anchor=(0.5, 0.035),
@@ -96,6 +134,16 @@ def main():
                 + "\n"
             )
     plt.close(fig)
+    print(
+        json.dumps(
+            dict(
+                cases=len(rows),
+                paper_method_optimal=counts[0],
+                paper_method_failed=failed,
+                geometric_optimal=counts[1],
+            )
+        )
+    )
 
 
 if __name__ == "__main__":

@@ -69,7 +69,7 @@ def min_pitch(n, m):
     return result
 
 
-def optimal(n, m, d):
+def optimal(n, m, d, path=None):
     """Vertex-capacitated fine-grid min-cost flow; no URBER rules used."""
     import numpy as np
     from ortools.graph.python import min_cost_flow
@@ -117,6 +117,61 @@ def optimal(n, m, d):
         "arcs": flow.num_arcs(),
         "status": str(status),
     }
+    if path is not None and result["feasible"]:
+        successor = {
+            flow.tail(i): flow.head(i)
+            for i in range(flow.num_arcs())
+            if flow.flow(i) and flow.tail(i) != source
+        }
+        paths, occupied = [], set()
+        expected_terminals = {
+            (x * d, y * d) for x in range(1, n + 1) for y in range(1, m + 1)
+        }
+        total = 0
+        for terminal in terminals:
+            node, points = 2 * int(terminal), []
+            while node != sink:
+                if node % 2 == 0:
+                    vertex = node // 2
+                    points.append((vertex % width, vertex // width))
+                node = successor[node]
+                if len(points) > v:
+                    raise RuntimeError("Cycle in extracted minimum-cost flow")
+            points.reverse()
+            for i, point in enumerate(points):
+                x, y = point
+                boundary = x in (0, width - 1) or y in (0, height - 1)
+                if point in occupied or boundary != (i == 0):
+                    raise RuntimeError(
+                        "Invalid geometry in extracted minimum-cost flow"
+                    )
+                if point in expected_terminals and i != len(points) - 1:
+                    raise RuntimeError("Extracted path passes through another terminal")
+                if i and abs(x - points[i - 1][0]) + abs(y - points[i - 1][1]) != 1:
+                    raise RuntimeError("Non-adjacent vertices in extracted path")
+                occupied.add(point)
+            total += len(points) - 1
+            bends = [points[0]]
+            for i in range(1, len(points) - 1):
+                before = (
+                    points[i][0] - points[i - 1][0],
+                    points[i][1] - points[i - 1][1],
+                )
+                after = (
+                    points[i + 1][0] - points[i][0],
+                    points[i + 1][1] - points[i][1],
+                )
+                if before != after:
+                    bends.append(points[i])
+            bends.append(points[-1])
+            paths.append(bends)
+        if len(paths) != n * m or total != result["total_length"]:
+            raise RuntimeError("Extracted flow length or terminal count mismatch")
+        target = Path(path)
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text(
+            json.dumps(dict(N=n, M=m, d=d, total_length=total, paths=paths)) + "\n"
+        )
     return result
 
 
@@ -204,10 +259,13 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("mode", choices=["ii", "iii", "mcf", "pitch"])
     parser.add_argument("dimensions", type=int, nargs="*")
+    parser.add_argument("--output", type=Path, help="write MCF paths as JSON")
     args = parser.parse_args()
+    if args.output is not None and args.mode != "mcf":
+        parser.error("--output is supported for the mcf mode")
     if args.mode in ("ii", "iii"):
         tables(args.mode)
     elif args.mode == "mcf":
-        print(json.dumps(optimal(*args.dimensions)), flush=True)
+        print(json.dumps(optimal(*args.dimensions, path=args.output)), flush=True)
     else:
         print(json.dumps(min_pitch(*args.dimensions)), flush=True)

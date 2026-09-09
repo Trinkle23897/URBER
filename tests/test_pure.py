@@ -54,6 +54,13 @@ class PureRoutingTests(unittest.TestCase):
         self.assertTrue(result["optimality_verified_offline"])
         self.assertEqual(result["constructor"]["total_length"], 2401474)
 
+    def test_paper_audit_records_a_gap_without_claiming_optimality(self):
+        row = next(row for row in load_cases() if (row["N"], row["M"]) == (105, 21))
+        result = audit(row, "paper")
+        self.assertTrue(result["constructor"]["verified"])
+        self.assertGreater(result["constructor"]["total_length"], result["lower_bound"])
+        self.assertFalse(result["optimality_verified_offline"])
+
     def test_invalid_dimensions_are_rejected(self):
         process = subprocess.run(
             [sys.executable, str(ROOT / "route.py"), "0", "5", "1"],

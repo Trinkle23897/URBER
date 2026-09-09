@@ -1,11 +1,41 @@
 """Behavior checks against the paper and a mathematically independent oracle."""
 
 import unittest
+import json
+from pathlib import Path
+import tempfile
 from research.experiment import run, min_pitch, optimal, assignment_lower_bound
 from research.bounds import assignment_lower_bound as folded_lower_bound
 
 
 class ReproductionTests(unittest.TestCase):
+    def test_min_cost_flow_exports_disjoint_optimal_paths(self):
+        with tempfile.TemporaryDirectory() as folder:
+            output = Path(folder) / "mcf.json"
+            result = optimal(3, 3, 2, path=output)
+            routes = json.loads(output.read_text())
+        self.assertEqual(result["total_length"], 21)
+        self.assertEqual(routes["total_length"], 21)
+        self.assertEqual(len(routes["paths"]), 9)
+        occupied, terminals = set(), set()
+        length = 0
+        for path in routes["paths"]:
+            terminals.add(tuple(path[-1]))
+            points = [tuple(path[0])]
+            for (x, y), (xx, yy) in zip(path, path[1:]):
+                self.assertTrue((x == xx) != (y == yy))
+                dx, dy = (xx > x) - (xx < x), (yy > y) - (yy < y)
+                while (x, y) != (xx, yy):
+                    x, y = x + dx, y + dy
+                    points.append((x, y))
+                    length += 1
+            for i, point in enumerate(points):
+                self.assertNotIn(point, occupied)
+                self.assertEqual(point[0] in (0, 8) or point[1] in (0, 8), i == 0)
+                occupied.add(point)
+        self.assertEqual(terminals, {(x, y) for x in (2, 4, 6) for y in (2, 4, 6)})
+        self.assertEqual(length, 21)
+
     def test_one_and_two_terminal_wide_arrays(self):
         # NM*d is a lower bound, as each terminal is at least d from any edge.
         for n, m in [(1, 1), (1, 100), (100, 1), (2, 2), (2, 100), (100, 2)]:

@@ -14,16 +14,18 @@ The pitch in each row is fixed throughout comparison. These pitches came from th
 
 | Construction | Optimal cases | Rate |
 | --- | ---: | ---: |
-| Previous pure-rule portfolio | 13,478 / 15,880 | 84.87% |
-| Pure geometric replay portfolio | 15,880 / 15,880 | 100% |
+| Paper-method reconstruction | 8,742 / 15,880 | 55.05% |
+| Improved geometric replay portfolio | 15,880 / 15,880 | 100% |
 
-The final result combines 9,037 high-pitch fan cases, 4,441 already-optimal low-pitch baseline cases, and 2,402 repaired cases. Every repaired case was reconstructed and independently geometrically verified. Each resulting length equals the offline boundary-assignment lower bound.
+The paper method was rerun on every recorded `(N,M,d)` using `build/urber`. All 15,880 outputs passed the geometry verifier; 7,138 are longer than the verified improved routing. These results are in [paper_method_thin_400.csv](../benchmarks/paper_method_thin_400.csv). This compares the reconstructed original method directly with the improved method, rather than with an intermediate portfolio.
 
-The standalone low-pitch baseline was checked on all 6,843 applicable cases against the previous baseline. The 12 winning replay configurations were also checked on representative instances in both orientations (24 runs), matching lengths and replay counters. The high-pitch implementation was independently checked in the original experiments on 9,469 distinct instances, including all 9,037 benchmark fan cases. These implementation checks supplement the [fan theorem](fan-proof.md); they do not replace it.
+Every improved length equals the offline boundary-assignment lower bound. The high-pitch branch handles 9,037 cases; the remaining 6,843 use the low-pitch portfolio. The standalone baseline and representative replay traces were checked against the original research implementation. These checks supplement the [fan theorem](fan-proof.md); they do not replace it.
+
+This stress-test domain differs from the paper's `30 <= N,M <= 100` experiment. The paper's 91.9% is not a baseline percentage for this thin-rectangle domain. The published Table II and III comparisons are documented in [reproduction.md](reproduction.md).
 
 ## What is in the CSV?
 
-Each row records dimensions, fixed pitch, baseline length, final length, and the independent lower bound. `mode` identifies `fan`, `baseline`, `guided`, or `deep`. For replay rows, `candidate`, `phase`, `alpha`, and `tie` identify a successful configuration, and the final three columns record its work counters. Unused fields are empty.
+Each row records dimensions, fixed pitch, final length, and the independent lower bound. The legacy `baseline_length` column preserves the intermediate portfolio for traceability; it is not the paper-method baseline. The latter is recorded separately in `paper_method_thin_400.csv`. `mode` identifies `fan`, `baseline`, `guided`, or `deep`. For replay rows, `candidate`, `phase`, `alpha`, and `tie` identify a successful configuration, and the final three columns record its work counters. Unused fields are empty.
 
 `candidate` bit 0 selects port priority and bit 1 transposes the construction orientation. `phase` controls ownership of odd central axes. These per-case columns are **offline witness metadata**. The runtime entry point reads only the dimension-independent configurations in `profiles.json`.
 
@@ -48,7 +50,10 @@ python3 -m venv .venv
 # Independently recompute bounds as well as reconstructing the witnesses.
 .venv/bin/python -m research.benchmark --mode witness --check-bounds --workers 4
 
-# Redraw the published figure from the complete CSV.
+# Reproduce the paper-method reference on the same fixed inputs.
+.venv/bin/python -m research.benchmark --mode paper --workers 32
+
+# Redraw the figures from the checked-in data.
 make plot PYTHON=.venv/bin/python
 ```
 
@@ -58,7 +63,7 @@ The replay audit compares recorded search counters as well as lengths. Geometry 
 
 ## Provenance and limitations
 
-These experiments were completed on September 8, 2026, on a local Apple Silicon machine. The public repository reorganizes the standalone implementation without changing the routing rules. [provenance.json](../benchmarks/provenance.json) records hashes of the original source and raw full-sweep results before packaging. [summary.json](../benchmarks/summary.json), [profile_validation.json](../benchmarks/profile_validation.json), and [smoke.json](../benchmarks/smoke.json) preserve the reported aggregate, representative trace checks, and end-to-end measurements.
+The improved-method experiments were completed on September 8, 2026, on a local Apple Silicon machine. The direct paper-method comparison was added on September 9, 2026 (UTC). The public repository reorganizes the standalone implementation without changing the routing rules. [provenance.json](../benchmarks/provenance.json) records hashes of the original source and raw full-sweep results before packaging. [summary.json](../benchmarks/summary.json), [profile_validation.json](../benchmarks/profile_validation.json), and [smoke.json](../benchmarks/smoke.json) preserve the reported aggregate, representative trace checks, and end-to-end measurements.
 
 Early sweep rows used the equivalent research constructor; later rows used the standalone constructor with a cached frontier and a hard replay guard. Representative checks matched exact lengths and work counters. All recorded winning traces are below the guard threshold. The per-case work counters are not complete instruction counts or portable timing measurements.
 

@@ -1,0 +1,14 @@
+{
+  "measured_utc": "2026-09-09T04:48:58.592308+00:00",
+  "platform": "macOS-26.6.2-arm64-arm-64bit",
+  "machine": "arm64",
+  "python": "Python 3.11.14",
+  "timing": "Serial end-to-end calls on the local machine, including subprocess startup and geometry verification. Not normalized against paper CPU timings.",
+  "source_hashes": {
+    "src/urber.cpp": "1927147832e5c48366db01e11b7c2f9dccbf1e0ea229eac57e559ee612c2b593",
+    "src/pure/pure_router.cpp": "bdcf0cde61ac71073403679feef4937ebfd0303b3931473ca0b21c435e944057",
+    "src/pure/pure_fan.cpp": "5e290f052220eba2ba80adf612f01d7680ec4e65d4810423933a6c82446b51e1",
+    "route.py": "0e4b94904453dfd2dbf503c3f47ad4fd6c8014851993d382f1d55fc26a677b68",
+    "profiles.json": "a88dd1d67ecadbc4d132a857b1b004d8951dd626f179bcfec420f8ead4e45162"
+  }
+}

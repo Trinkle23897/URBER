@@ -1,31 +1,19 @@
 {
   "canonical_cases": 15880,
-  "cases_including_transposes": 31760,
-  "before": {
-    "true": 13478,
-    "false": 2402,
+  "domain": "1 <= N <= 400; 1 <= M <= floor(N/5)",
+  "ordered_transposes_separately_evaluated": false,
+  "paper_method": {
+    "optimal": 8742,
+    "nonoptimal": 7138,
+    "construction_failed": 0
+  },
+  "geometric": {
+    "optimal": 15880,
+    "nonoptimal": 0,
     "unknown": 0
   },
-  "after": {
-    "true": 15880,
-    "false": 0,
-    "unknown": 0
-  },
-  "improved": 2402,
-  "largest_relative_gap_to_lower_bound": {
-    "N": 28,
-    "M": 1,
-    "d": 1,
-    "total_length": 28,
-    "lower_bound": 28,
-    "relative_gap": 0.0
-  },
-  "retained_previous_results": 13478,
-  "all_points_evaluated": true,
-  "fixed_original_failures": 2402,
   "unchanged_pitch": true,
   "profile_count": 12,
-  "standalone_baseline_matches": 6843,
   "runtime_uses_flow_solver": false,
   "winning_profile_counts": [
     {
