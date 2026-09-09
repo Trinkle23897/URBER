@@ -120,6 +120,24 @@ An explicit JSON list such as `[[400, 399], [400, 398]]` can assign pending cano
   --pairs pending.json --output results/helper
 ```
 
+When only expensive pairs remain, parallelize their native candidate calls as
+well. For example, eight pair workers with eight candidates each use at most
+64 concurrent native calls:
+
+```sh
+.venv/bin/python -m research.full_sweep --max-n 400 --workers 8 \
+  --candidate-workers 8 --pairs pending.json --output results/tail-helper
+```
+
+Candidate results are consumed in the same order as the sequential evaluation,
+including tie handling, lower-bound early stopping, and the preferred candidate
+for the transposed case. Speculative calls may do extra work after an earlier
+candidate reaches the bound; their results do not change the selected routing
+or the reported trial count. This option accelerates offline evaluation without
+changing the routing algorithm. Budget the product of both worker counts against
+available CPU and memory, and keep existing long-running jobs until combined
+coverage is verified.
+
 Helpers can run while an original shard continues its long-running cases. Do not sum their counters: repeated observations can overlap. Collect stable result snapshots and merge only after the union covers the entire intended domain:
 
 ```sh

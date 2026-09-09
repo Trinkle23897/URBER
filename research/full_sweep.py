@@ -5,8 +5,10 @@ is a candidate of the unmodified runtime portfolio and is geometrically checked.
 """
 
 import argparse
-from concurrent.futures import ProcessPoolExecutor, as_completed
+from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor, as_completed
+from contextlib import nullcontext
 from datetime import datetime, timezone
+from functools import partial
 import hashlib
 import json
 import multiprocessing
@@ -87,13 +89,40 @@ def classify(result, bound, other):
     return "unknown"
 
 
-def initialize_worker(pitches, profiles, done, active):
+def initialize_worker(pitches, profiles, done, active, candidate_workers=1):
     global WORKER_STATE
-    WORKER_STATE = pitches, profiles, done, active
+    WORKER_STATE = pitches, profiles, done, active, candidate_workers
+
+
+def portfolio(n, m, d, bound, configs, workers=1, stage=lambda value: None):
+    """Evaluate concurrently but select in the original, deterministic order.
+
+    Native constructors run in separate processes, so threads can wait on them
+    without serializing CPU work. Speculative calls may finish after the first
+    bound-attaining candidate; their results do not change selection or trials.
+    """
+    best, selected, attempts = None, None, 0
+    configs = list(configs)
+    with ThreadPoolExecutor(workers) if workers > 1 else nullcontext() as pool:
+        evaluate = partial(native, n, m, d)
+        results = pool.map(evaluate, configs) if pool else map(evaluate, configs)
+        for config in configs:
+            attempts += 1
+            stage(f"geometric {n}x{m} candidate {attempts}: {config}")
+            candidate = next(results)
+            if candidate and (
+                best is None or candidate["total_length"] < best["total_length"]
+            ):
+                best, selected = candidate, config
+            if best and best["total_length"] < bound:
+                raise RuntimeError("Geometric routing below the lower bound")
+            if best and best["total_length"] == bound:
+                break
+    return best, selected, attempts
 
 
 def pair(n, m):
-    pitches, profiles, done, active = WORKER_STATE
+    pitches, profiles, done, active, candidate_workers = WORKER_STATE
 
     def stage(key, value):
         active[str(key)] = value
@@ -121,18 +150,11 @@ def pair(n, m):
             if fan:
                 best = fan if nn == n else native(nn, mm, d)
             else:
-                for config in configurations(nn, mm, profiles, preferred):
-                    attempts += 1
-                    stage(key, f"geometric {nn}x{mm} candidate {attempts}: {config}")
-                    candidate = native(nn, mm, d, config)
-                    if candidate and (
-                        best is None or candidate["total_length"] < best["total_length"]
-                    ):
-                        best, selected = candidate, config
-                    if best and best["total_length"] < bound:
-                        raise RuntimeError("Geometric routing below the lower bound")
-                    if best and best["total_length"] == bound:
-                        break
+                best, selected, attempts = portfolio(
+                    nn, mm, d, bound,
+                    configurations(nn, mm, profiles, preferred),
+                    candidate_workers, lambda value: stage(key, value),
+                )
                 preferred = selected
             rows.append(
                 dict(
@@ -163,6 +185,10 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--max-n", type=int, default=400)
     parser.add_argument("--workers", type=int, default=32)
+    parser.add_argument(
+        "--candidate-workers", type=int, default=1,
+        help="native calls per pair worker; results retain sequential selection order",
+    )
     parser.add_argument("--shards", type=int, default=1)
     parser.add_argument("--shard", type=int, default=0)
     parser.add_argument("--output", type=Path, default=ROOT / "results/full-400")
@@ -171,7 +197,7 @@ def main():
         "--pairs", type=Path, help="JSON list of canonical [N,M] pairs to evaluate"
     )
     args = parser.parse_args()
-    if args.max_n < 1 or args.workers < 1:
+    if args.max_n < 1 or args.workers < 1 or args.candidate_workers < 1:
         parser.error("dimensions and workers must be positive")
     if args.shards < 1 or not 0 <= args.shard < args.shards:
         parser.error("require 0 <= shard < shards")
@@ -226,6 +252,7 @@ def main():
                 dict(
                     signature=signature,
                     workers=args.workers,
+                    candidate_workers=args.candidate_workers,
                     created_utc=datetime.now(timezone.utc).isoformat(),
                     platform=platform.platform(),
                 ),
@@ -320,7 +347,7 @@ def main():
                 args.workers,
                 mp_context=context,
                 initializer=initialize_worker,
-                initargs=(pitches, profiles, done, active),
+                initargs=(pitches, profiles, done, active, args.candidate_workers),
             ) as pool:
                 for future in as_completed([pool.submit(pair, *key) for key in todo]):
                     rows, error = future.result()
