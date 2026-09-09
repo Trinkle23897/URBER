@@ -167,11 +167,32 @@ def main():
     parser.add_argument("--shard", type=int, default=0)
     parser.add_argument("--output", type=Path, default=ROOT / "results/full-400")
     parser.add_argument("--resume", action="store_true")
+    parser.add_argument(
+        "--pairs", type=Path, help="JSON list of canonical [N,M] pairs to evaluate"
+    )
     args = parser.parse_args()
     if args.max_n < 1 or args.workers < 1:
         parser.error("dimensions and workers must be positive")
     if args.shards < 1 or not 0 <= args.shard < args.shards:
         parser.error("require 0 <= shard < shards")
+    assigned = None
+    if args.pairs:
+        if args.shards != 1 or args.shard != 0:
+            parser.error("--pairs cannot be combined with sharding")
+        pairs = json.loads(args.pairs.read_text())
+        if not isinstance(pairs, list) or any(
+            not isinstance(pair, list)
+            or len(pair) != 2
+            or any(type(x) is not int for x in pair)
+            or not 1 <= pair[1] <= pair[0] <= args.max_n
+            for pair in pairs
+        ):
+            parser.error(
+                "--pairs requires canonical integer pairs 1 <= M <= N <= max-n"
+            )
+        assigned = [tuple(pair) for pair in pairs]
+        if len(set(assigned)) != len(assigned):
+            parser.error("duplicate pair in --pairs manifest")
     args.output.mkdir(parents=True, exist_ok=True)
     files = [
         "build/urber",
@@ -186,6 +207,10 @@ def main():
         "benchmarks/paper/table_iii.csv",
     ]
     signature = {p: hashlib.sha256((ROOT / p).read_bytes()).hexdigest() for p in files}
+    if args.pairs:
+        signature["pair_manifest_sha256"] = hashlib.sha256(
+            args.pairs.read_bytes()
+        ).hexdigest()
     signature["max_n"] = args.max_n
     signature["shard"] = args.shard
     signature["shards"] = args.shards
@@ -237,12 +262,16 @@ def main():
     active, lock, finished = manager.dict(), threading.Lock(), threading.Event()
     started = time.monotonic()
     failures = []
-    assigned = [
-        (n, m)
-        for n in range(1, args.max_n + 1)
-        for m in range(1, n + 1)
-        if (n * (n - 1) // 2 + m - 1) % args.shards == args.shard
-    ]
+    assigned = (
+        assigned
+        if assigned is not None
+        else [
+            (n, m)
+            for n in range(1, args.max_n + 1)
+            for m in range(1, n + 1)
+            if (n * (n - 1) // 2 + m - 1) % args.shards == args.shard
+        ]
+    )
     assigned_total = sum(1 if n == m else 2 for n, m in assigned)
 
     def progress():
@@ -251,6 +280,7 @@ def main():
                 completed=len(done),
                 total=assigned_total,
                 global_total=args.max_n**2,
+                domain="explicit_pairs" if args.pairs else "full_shard",
                 shard=args.shard,
                 counts=counts,
                 errors=len(failures),
@@ -277,7 +307,8 @@ def main():
         (args.max_n, max(1, args.max_n - 1)),
         (args.max_n, max(1, args.max_n // 2)),
     }
-    todo.sort(key=lambda key: (key not in probes, *key))
+    if not args.pairs:
+        todo.sort(key=lambda key: (key not in probes, *key))
     reporter = threading.Thread(target=monitor, daemon=True)
     reporter.start()
     try:

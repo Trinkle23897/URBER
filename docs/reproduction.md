@@ -109,3 +109,22 @@ After collecting both shard files:
 ```
 
 The full-square plot requires complete, nonoverlapping coverage by default. Use `--allow-incomplete` only for an explicitly labeled progress plot. The completed thin-rectangle map is not presented as completion of this larger run.
+
+
+## Rebalance pending cases
+
+An explicit JSON list such as `[[400, 399], [400, 398]]` can assign pending canonical pairs to another worker pool. `--pairs` preserves the list's order, evaluates both orientations, and records the list's hash for safe resumption. It cannot be combined with `--shards`.
+
+```sh
+.venv/bin/python -m research.full_sweep --max-n 400 --workers 64 \
+  --pairs pending.json --output results/helper
+```
+
+Helpers can run while an original shard continues its long-running cases. Do not sum their counters: repeated observations can overlap. Collect stable result snapshots and merge only after the union covers the entire intended domain:
+
+```sh
+.venv/bin/python -m research.merge_sweep results/original-shard2 results/helper-a results/helper-b \
+  --max-n 400 --shards 6 --shard 2 --output results/merged-shard2
+```
+
+The merge verifies dimensions, pitch, bounds, and statuses; repeated observations must agree on pitch, bound, both lengths, and both statuses. It rejects missing cases and disagreements, retains input hashes and run provenance, and writes `_SUCCESS` only for complete combined coverage. Original inputs may be partial because the helper observations fill the missing cases. Keep active original work until all its assigned cases are covered by verified results.
